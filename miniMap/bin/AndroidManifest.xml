@@ -40,6 +40,9 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyD2qjB4w64f8x_jxf4tXjEYySmz-z4qzRQ" />
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyDAU2ipQxgTRlg2oY2dxZxE8QpmxJf68eE" />
 
         <activity
             android:name="edu.usf.cse.minimap.MapActivity"

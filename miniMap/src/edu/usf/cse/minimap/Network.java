@@ -27,7 +27,7 @@ import edu.usf.cse.minimap.GroupActivity.Group;
 public class Network {
     private static Network instance = null;
     private HttpClient client = new DefaultHttpClient();
-    private String host = "localhost";
+    private String host = "50.62.212.171";
 
     public static Network getInstance() {
         if (instance == null) {
@@ -217,6 +217,53 @@ public class Network {
                 e.printStackTrace();
                 continue;
             }
+        }
+    }
+
+    public void reportLocation(double latitude, double longitude) {
+        if (State.networkDebug) {
+
+            return;
+        }
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("latitude", latitude);
+            obj.put("longitude", longitude);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
+        sendJSON(obj, "");
+    }
+
+    public void sendPing(double latitude, double longitude) {
+        if (State.networkDebug) {
+
+            return;
+        }
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("latitude", latitude);
+            obj.put("longitude", longitude);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
+        sendJSON(obj, "");
+    }
+
+    private boolean sendJSON(JSONObject o, String location) {
+        try {
+            HttpPost postReq = new HttpPost(host + "/" + location);
+            StringEntity se = new StringEntity(o.toString());
+            se.setContentType("application/json;charset=UTF-8");
+            se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
+                    "application/json;charset=UTF-8"));
+            postReq.setEntity(se);
+            HttpResponse response = client.execute(postReq);
+            return 200 == response.getStatusLine().getStatusCode();
+        } catch (Exception e) {
+            return false;
         }
     }
 

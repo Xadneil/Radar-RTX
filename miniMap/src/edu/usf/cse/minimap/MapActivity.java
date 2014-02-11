@@ -3,6 +3,7 @@ package edu.usf.cse.minimap;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Point;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,6 +15,9 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -29,6 +33,8 @@ public class MapActivity extends Activity {
     private GoogleMap map;
     private Handler handler;
     private MapUpdater updater;
+    private LocationProvider provider;
+    private LocationClient location;
 
     @SuppressLint("HandlerLeak")
     @Override
@@ -54,10 +60,10 @@ public class MapActivity extends Activity {
         map.moveCamera(CameraUpdateFactory.newLatLng(e.position));
         map.moveCamera(CameraUpdateFactory.zoomTo(e.zoom));
 
-//        Group g = State.getCurrentGroup();
-//        if (g == null) {
-//            finish();
-//        }
+        // Group g = State.getCurrentGroup();
+        // if (g == null) {
+        // finish();
+        // }
 
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(false);
@@ -70,6 +76,28 @@ public class MapActivity extends Activity {
         };
 
         updater = new MapUpdater(handler);
+        provider = new LocationProvider(this);
+        location = new LocationClient(this, new GooglePlayServicesClient.ConnectionCallbacks() {
+            
+            @Override
+            public void onDisconnected() {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void onConnected(Bundle arg0) {
+                // TODO Auto-generated method stub
+                
+            }
+        }, new GooglePlayServicesClient.OnConnectionFailedListener() {
+            
+            @Override
+            public void onConnectionFailed(ConnectionResult arg0) {
+                // TODO Auto-generated method stub
+                
+            }
+        });
     }
 
     private void initialize() {
@@ -82,21 +110,29 @@ public class MapActivity extends Activity {
         }
     }
 
+    public LatLng getLocation() {
+        Location loc = location.getLastLocation();
+        return new LatLng(loc.getLatitude(), loc.getLongitude());
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         updater.start();
+        provider.start();
     }
 
     @Override
     protected void onPause() {
         updater.finish();
+        provider.finish();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         updater.finish(); // just to make sure
+        provider.finish(); // just to make sure
         super.onDestroy();
     }
 
