@@ -1,20 +1,9 @@
 package edu.usf.cse.minimap;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,7 +15,7 @@ import edu.usf.cse.minimap.GroupActivity.Group;
 
 public class Network {
     private static Network instance = null;
-    private HttpClient client = new DefaultHttpClient();
+    private SocketReader client = null;
     private String host = "50.62.212.171";
 
     public static Network getInstance() {
@@ -36,111 +25,36 @@ public class Network {
         return instance;
     }
 
-    public boolean login(final String email, final String passHash) {
-        if (State.networkDebug) {
-            return true;
-        }
-        JSONObject o = new JSONObject();
+    public void send(Packet p) {
         try {
-            o.put("email", email);
-            o.put("password", passHash);
-        } catch (JSONException e) {
+            client.getSocket().getOutputStream().write(p.toByteArray());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
-            return false;
         }
-        String s = sendJSONAndReceive(o, "");
-        JSONObject ret;
-        boolean success;
-        try {
-            ret = new JSONObject(s);
-            success = ret.getBoolean("success");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return success;
     }
 
-    /**
-     * Requests positions, ping, and drawing from network
-     * 
-     * @return If anything on the map needs to be updated
-     */
-    public boolean requestMapState() {
-        if (State.networkDebug) {
-            return true;
-        }
-        JSONObject obj = new JSONObject();
+    public void connect(short port) {
+        Socket s;
         try {
-            // TODO figure out session v. individual ID
-            // obj.put("email", email);
-            obj.put("request_state", null);
-        } catch (JSONException e) {
+            s = new Socket(host, port);
+            s.setTcpNoDelay(false);
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
-            return false;
-        }
-        String s = sendJSONAndReceive(obj, "");
-        JSONObject ret;
-        try {
-            ret = new JSONObject(s);
-        } catch (JSONException e) {
+            return;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
-            return false;
+            return;
         }
-        boolean update = false;
-        boolean hasPositions, hasPing, hasDraw;
-        try {
-            hasPositions = ret.getBoolean("has_position");
-            hasPing = ret.getBoolean("has_ping");
-            hasDraw = ret.getBoolean("has_draw");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
-        if (hasPositions) {
-            JSONArray positions;
-            try {
-                positions = ret.getJSONArray("positions");
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return false;
-            }
-            synchronized (State.getPositionsLock()) {
-                State.setHasNewPositions(true);
-                for (int i = 0; i < positions.length(); i++) {
-                    try {
-                        JSONObject o = positions.getJSONObject(i);
-                        int number = o.getInt("number");
-                        double latitude = o.getDouble("latitude");
-                        double longitude = o.getDouble("longitude");
-                        LatLng l = new LatLng(latitude, longitude);
-                        State.getPositions()[number] = l;
-                        update = true;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        continue;
-                    }
-                }
-            }
-        }
-        if (hasPing) {
-            update = true;
-            synchronized (State.getPingLock()) {
-                try {
-                    double latitude = ret.getDouble("ping_latitude");
-                    double longitude = ret.getDouble("ping_longitude");
-                    State.setPing(new LatLng(latitude, longitude));
-                    State.setHasNewPing(true);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-        }
-        if (hasDraw) {
 
-        }
-        return update;
+        client = new SocketReader(s);
+        client.start();
+    }
+
+    public void disconnect() {
+        client.close();
     }
 
     public void fetchEvents() {
@@ -250,79 +164,5 @@ public class Network {
             return;
         }
         sendJSON(obj, "");
-    }
-
-    private boolean sendJSON(JSONObject o, String location) {
-        try {
-            HttpPost postReq = new HttpPost(host + "/" + location);
-            StringEntity se = new StringEntity(o.toString());
-            se.setContentType("application/json;charset=UTF-8");
-            se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
-                    "application/json;charset=UTF-8"));
-            postReq.setEntity(se);
-            HttpResponse response = client.execute(postReq);
-            return 200 == response.getStatusLine().getStatusCode();
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * Code source: Osama Shabrez
-     * 
-     * @param o
-     * @param location
-     * @return
-     */
-    private String sendJSONAndReceive(JSONObject o, String location) {
-        try {
-            HttpPost postReq = new HttpPost(host + "/" + location);
-            StringEntity se = new StringEntity(o.toString());
-            se.setContentType("application/json;charset=UTF-8");
-            se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
-                    "application/json;charset=UTF-8"));
-            postReq.setEntity(se);
-            HttpResponse response = client.execute(postReq);
-
-            HttpEntity resultEntity = response.getEntity();
-            InputStream inputStream = resultEntity.getContent();
-            // gzip stuff
-            // Header contentEncoding =
-            // httpresponse.getFirstHeader("Content-Encoding");
-            // if(contentEncoding != null &&
-            // contentencoding.getValue().equalsIgnoreCase("gzip")) {
-            // inputStream = new GZIPInputStream(inputStream);
-            // }
-            String ret = convertStreamToString(inputStream);
-            inputStream.close();
-            return ret;
-        } catch (UnsupportedEncodingException ex) {
-
-        } catch (ClientProtocolException ex) {
-
-        } catch (IOException ex) {
-
-        }
-        return null;
-    }
-
-    /**
-     * Code source: Osama Shabrez
-     * 
-     * @param is
-     * @return
-     */
-    private String convertStreamToString(InputStream is) {
-        String line = "";
-        StringBuilder total = new StringBuilder();
-        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-        try {
-            while ((line = rd.readLine()) != null) {
-                total.append(line);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return total.toString();
     }
 }

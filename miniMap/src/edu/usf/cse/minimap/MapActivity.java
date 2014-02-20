@@ -31,7 +31,7 @@ import edu.usf.cse.minimap.EventActivity.Event;
 //TODO re-lock map fragment movement in layout xml
 public class MapActivity extends Activity {
     private GoogleMap map;
-    private Handler handler;
+    private static Handler handler;
     private MapUpdater updater;
     private LocationProvider provider;
     private LocationClient location;
@@ -75,29 +75,34 @@ public class MapActivity extends Activity {
             }
         };
 
-        updater = new MapUpdater(handler);
+        updater = new MapUpdater();
         provider = new LocationProvider(this);
-        location = new LocationClient(this, new GooglePlayServicesClient.ConnectionCallbacks() {
-            
-            @Override
-            public void onDisconnected() {
-                // TODO Auto-generated method stub
-                
-            }
-            
-            @Override
-            public void onConnected(Bundle arg0) {
-                // TODO Auto-generated method stub
-                
-            }
-        }, new GooglePlayServicesClient.OnConnectionFailedListener() {
-            
-            @Override
-            public void onConnectionFailed(ConnectionResult arg0) {
-                // TODO Auto-generated method stub
-                
-            }
-        });
+        location = new LocationClient(this,
+                new GooglePlayServicesClient.ConnectionCallbacks() {
+
+                    @Override
+                    public void onDisconnected() {
+                        // TODO Auto-generated method stub
+
+                    }
+
+                    @Override
+                    public void onConnected(Bundle arg0) {
+                        // TODO Auto-generated method stub
+
+                    }
+                }, new GooglePlayServicesClient.OnConnectionFailedListener() {
+
+                    @Override
+                    public void onConnectionFailed(ConnectionResult arg0) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+    }
+
+    public static Handler getHandler() {
+        return handler;
     }
 
     private void initialize() {

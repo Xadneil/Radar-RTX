@@ -4,19 +4,15 @@ import android.os.Handler;
 
 public class MapUpdater extends Thread {
     private boolean isRunning = false;
-    private Handler handler;
 
-    public MapUpdater(Handler handler) {
+    public MapUpdater() {
         super("PositionUpdater");
-        this.handler = handler;
     }
 
     @Override
     public void run() {
         while (isRunning) {
-            if (Network.getInstance().requestMapState()) {
-                handler.sendEmptyMessage(0);
-            }
+            Network.getInstance().send(new Packet(SendOpcode.MAP_STATE));
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

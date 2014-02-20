@@ -33,7 +33,7 @@ public class LoginActivity extends Activity {
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    public static UserLoginTask mAuthTask = null;
 
     // Values for email and password at the time of the login attempt.
     private String mEmail;
@@ -93,6 +93,10 @@ public class LoginActivity extends Activity {
                         }
                     }).show();
         }
+    }
+
+    public void loginFinished() {
+        mAuthTask.notify();
     }
 
     /**
@@ -200,7 +204,14 @@ public class LoginActivity extends Activity {
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-            return Network.getInstance().login(mEmail, mPassword);
+            Network.getInstance().send(PacketCreator.login(mEmail, mPassword));
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return State.isLoginOK();
         }
 
         @Override

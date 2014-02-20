@@ -24,7 +24,36 @@ public class State {
     private static Group groups[];
     private static int currentGroup = -1;
 
+    private static boolean loginOK = false;
+    private static boolean admin = false;
+
+    private static String authID;
+
+    public static String getAuthID() {
+        return authID;
+    }
+
+    public static void setAuthID(String authID) {
+        State.authID = authID;
+    }
+
     public static boolean networkDebug = true;
+
+    public static boolean isLoginOK() {
+        return loginOK;
+    }
+
+    public static void setLoginOK(boolean loginOK) {
+        State.loginOK = loginOK;
+    }
+
+    public static boolean isAdmin() {
+        return admin;
+    }
+
+    public static void setAdmin(boolean admin) {
+        State.admin = admin;
+    }
 
     public static LatLng getPing() {
         return ping;
