@@ -1,0 +1,102 @@
+=================================================
+               Packet Documentation
+=================================================
+Auth: Jim Ching
+      Daniel Flaws
+Desc: Defines the message protocol between server
+      and client.
+Note: Best viewed in notepad++ or sublime text.
+=================================================
+1. Login Server   (0xa1 - 0xaf)  A series
+2. Event Server   (0xe1 - 0xef)  E series
+3. Map Server     (0xb1 - 0xdf)  BCD series
+4. Login Server Status Code
+=================================================
+Packet Format
+<op-code> <cts/stc> {
+   <type>(<byte length>): <identifier>
+   <type>(<byte length>): <identifier>
+   ...
+   <type>(<byte length>): <identifier>
+}
+=================================================
+Important Data Structures
+1. Session Login Table
+   * Tracks all authentication ID.
+   * Shared by all login, event, and map server.
+=================================================
+
+1. Login Server   (0xa1 - 0xaf)  A series
+
+Packets
+   0xa1 cts {
+      short(2)    : packet header
+      string(64)  : email
+      string(64)  : password (SHA-256)
+   }
+
+   0xa2 stc {
+      short(2)    : packet header
+      short(2)    : status code
+      string(16)  : authentication id
+      short(2)    : event port number
+   }
+
+Login Server Communication Protocol
+   0. User connects to the Login server.
+   1. User sends (0xa1) email and password to Login server.
+   2. Server queries database for email and fetch password.
+   3. Server matches the SHA-256 password and returns a status code.
+   4. Server sends (0xa2) back to the user.
+
+Paramater Explanation
+   1. Status Code - View Login Server Status Code for more information.
+   2. Email - <identification>@<domain>
+   3. Password - SHA-256 hashed password
+   4. Authentication ID - Session identification
+   5. Event ID - Port number to event server
+
+2. Event Server   (0xe1 - 0xef)  E series
+
+Packets
+   0xe1 cts {
+      short(2)    : packet header
+      string(16)  : authentication id
+   }
+
+   0xe2 stc {
+      short(2)    : packet header
+      integer(4)  : event id
+      string(32)  : event name
+      string(32)  : team one name
+      string(32)  : team two name
+   }
+
+   0xe3 cts {
+      short(2)    : packet header
+      string(16)  : authentication id
+      integer(4)  : event id
+   }
+
+   0xe4 stc {
+      short(2)    : packet header
+      short(2)    : event's map server port number
+   }
+
+Event Server Communication Protocol
+   0. User connects to the Event server using the port number sent by the server.
+   1. User send authentication ID to Event server for verification.
+   ! IMPORTANT: Only one event supported at the moment !
+   2. Event verifies authentication id and sends back an event packet with associated information.
+   3. User selects an event and sends back to event server authentication and event id.
+   4. Event server verifies authentication id again and sends back the port number to the event's map server.
+
+3. Map Server     (0xb1 - 0xdf)  BCD series
+! IMPORTANT: NOT STARTED !
+
+4. Login Server Status Code
+enum {
+   LOGIN_FAIL = 401
+   LOGIN_USER = 200
+   LOGIN_ADMN = 201
+}
