@@ -1,0 +1,48 @@
+=================================================
+            Login Server Documentation
+=================================================
+Auth: Jim Ching
+Desc: High-level description of login server
+      including design and research descriptions.
+=================================================
+Language : Python 2.7
+Platform : CentOS
+Encoding : utf-8
+Standard
+   : os              - Operating system service
+   : sys             - Shell environment
+Module   
+   : socket          - TCP network transmission protocol
+   : struct          - Pack and unpack packets
+   : threading       - GIL threading
+   : sqlalchemy      - Object relational mapper (SQLite; MySQL)
+   : pycrypto        - SHA-256 encryption
+   : signal          - Asynchronous server commands
+   : multiprocessing - Login, Event, Map server generator
+Packet
+   : 0xa1 - 0xaf     - A series
+=================================================
+
+login_packet_table = {
+   0xa1  :  authenticate_user(packet)  # incoming
+   0xa2  :  verificate_user(packet)    # outgoing
+}
+
+# Client-side packets are define for testing purposes.
+# Server-client packets are define pairwise.
+
+0. Multiprocessing generate login server with shared table. (True Parallel)
+1. Register signal handlers for server.
+2. Login server TCP setup to listen for all connections.
+3. Login server connection with database.
+4. Login server thread per connection.                      (GIL 'Parallel')
+5. Each thread receive incoming packet; start pair.
+   a. Unpack incoming packet
+   b. Query DB for using email
+   c. Match SHA-256 hashed passwords
+   d. Determine status code
+   e. Pack outgoing packet
+6. Each thread send outgoing packet; end pair.
+7. Each thread end connection on outgoing packet.
+
+=================================================
