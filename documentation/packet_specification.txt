@@ -28,17 +28,28 @@ Important Data Structures
 1. Login Server   (0xa1 - 0xaf)  A series
 
 Packets
-   0xa1 cts {
+   0xa1 cts {     // LOGIN
       short(2)    : packet header
       string(64)  : email
       string(64)  : password (SHA-256)
    }
 
-   0xa2 stc {
+   0xa2 stc {     // AUTHENTICATED
       short(2)    : packet header
       short(2)    : status code
       string(16)  : authentication id
       short(2)    : event port number
+   }
+
+   0xa3 cts {     // REGISTER
+      short(2)    : packet header
+      string(64)  : email
+      string(64)  : password (SHA-256)
+   }
+
+   0xa4 stc {     // REGISTRATION STATUS
+      short(2)    : packet header
+      short(2)    : status code
    }
 
 Login Server Communication Protocol

@@ -49,4 +49,6 @@ login_status_code = {                                                         [O
    LOGIN_FAIL = 401
    LOGIN_USER = 200
    LOGIN_ADMN = 201
+   REGISTER_FAIL = 128
+   REGISTER_SUCCESS = 137
 }
