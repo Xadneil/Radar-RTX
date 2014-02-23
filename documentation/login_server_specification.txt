@@ -44,5 +44,3 @@ login_packet_table = {
    e. Pack outgoing packet
 6. Each thread send outgoing packet; end pair.
 7. Each thread end connection on outgoing packet.
-
-=================================================

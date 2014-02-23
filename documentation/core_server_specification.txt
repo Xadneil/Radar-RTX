@@ -1,0 +1,23 @@
+=================================================
+            Core Server Documentation
+=================================================
+Auth: Jim Ching
+=================================================
+Detail Explanation
+-------------------------------------------------
+   1. multiprocessing module
+-------------------------------------------------
+   1. multiprocessing module
+      Python's parallel capcabilities are limited in two ways:
+      1. Threads are limited by the Global Interpreter Lock (GIL),
+         which effectively elminates utilization of multiple cores.
+      2. Forking processes are limited to Linux and Unix based system,
+         which is incompatible with Windows.
+
+      The multiprocessing module spawns multiple PVM to get around the
+      GIL and fork limitations, as well as providing IPC tools between
+      all these spawned processes.
+
+      Therefore the multiprocessing module will be the core module for
+      spawning login, event, and map servers, which all runs in parallel
+      and centralized.
