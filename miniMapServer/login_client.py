@@ -4,7 +4,7 @@ import sys
 import socket
 import struct
 
-serv_host = 'localhost'
+serv_host = '50.62.212.171'
 serv_port = 33600
 
 # connect to server

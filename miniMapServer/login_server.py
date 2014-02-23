@@ -75,7 +75,7 @@ def authent_user(packet):
    
    # Pack server packet
    packet_header = 0xa2
-   if match_email and not match_email.email in lserv_table:   # match passwords for LOGIN_USER or LOGIN_ADMN
+   if match_email != None and not match_email.email in lserv_table:   # match passwords for LOGIN_USER or LOGIN_ADMN
       status_code = login_status_code['LOGIN_USER'] if login_status_code['LOGIN_USER'] == match_email.privilege else login_status_code['LOGIN_ADMN']
       authentication_id = lserv_auth
       event_port = 0

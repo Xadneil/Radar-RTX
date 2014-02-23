@@ -98,7 +98,10 @@ def cmd_showstat():
 
 def cmd_showlogint():
   'Display all authenticated users'
-  print(serv_login_table)
+  global serv_login_table
+  for login_user in serv_login_table.keys():
+    printfmv(colorama.Fore.RED + colorama.Style.BRIGHT + login_user + colorama.Fore.WHITE + colorama.Style.NORMAL, 0,' - Privilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
+    printfmv('Key: ', 0,'{:s}'.format(str(serv_login_table[login_user][0])),50)
 
 def cmd_shutdown():
   'Signal all active servers to shutdown, release resources, and close core server.'
@@ -208,7 +211,7 @@ if __name__ == '__main__':
   cmd_menu['loginstart']()
   cmd_menu['logintrack']()
   time.sleep(5)                 # wait 5 seconds for core server to run thread and process
-  
+
   # display initial command list
   printsep(50)
   cmd_menu['showmenu']()
