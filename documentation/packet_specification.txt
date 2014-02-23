@@ -89,6 +89,3 @@ Event Server Communication Protocol
    2. Event verifies authentication id and sends back an event packet with associated information.
    3. User selects an event and sends back to event server authentication and event id.
    4. Event server verifies authentication id again and sends back the port number to the event's map server.
-
-3. Map Server     (0xb1 - 0xdf)  BCD series
-! IMPORTANT: NOT STARTED !

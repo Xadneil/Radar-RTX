@@ -68,7 +68,7 @@ def printerr(err):
 def printlserv(mes):
   'Print login server messages with color'
   with thread_global_lock:
-    print('\r' + colorama.Fore.CYAN + colorama.Style.BRIGHT + 'lsev:' + colorama.Fore.WHITE + colorama.Style.NORMAL, mes)
+    print('\r' + colorama.Fore.YELLOW + colorama.Style.BRIGHT + 'lsev:' + colorama.Fore.WHITE + colorama.Style.NORMAL, mes)
 
 # asynchronous signal handlers
 def ctrlc_exit(signal_name, signal_frame): 
@@ -189,8 +189,8 @@ if __name__ == '__main__':
   signal.signal(signal.SIGTERM, ctrlc_exit)
   #signal.signal(signal.SIGALRM, track_serv)
   #signal.setitimer(signal.ITIMER_REAL, 5, 5)
-  printfm('info: registering SIGINT', str(signal.SIGINT) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
-  printfm('info: registering SIGTERM', str(signal.SIGTERM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+  printfm('info: registering SIGINT', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+  printfm('info: registering SIGTERM', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
   #printfm('info: registering SIGALRM', str(signal.SIGALRM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
   printsep(50)
 

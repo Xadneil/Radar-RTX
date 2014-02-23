@@ -8,41 +8,44 @@ Desc: High-level description of login server
 Language : Python 3.3
 Platform : CentOS
 Encoding : utf-8
-Module   
+Module 
+   : random          - randomize authentication id  
+   : os              - random authentication id
    : signal          - Asynchronous server commands
    : multiprocessing - Login, Event, Map server generator
    : socket          - TCP network transmission protocol
    : sqlalchemy      - Object relational mapper (SQLite; MySQL)
    : threading       - GIL threading
    : struct          - Pack and unpack packets
-   : pycrypto        - SHA-256 encryption
-   
+   : Crypto          - SHA-256 encryption
+   : colorama        - Color text
+
 Packet
    : 0xa1 - 0xaf     - A series
 =================================================
 
-0. Multiprocessing generate login server with shared table. (True Parallel)
-1. Register signal handlers for server.
-2. Login server TCP setup to listen for all connections.
-3. Login server connection with database.
-4. Login server thread per connection.                      (GIL 'Parallel')
-5. Each thread receive incoming packet; start pair.
-   a. Unpack incoming packet
-   b. Query DB for using email
-   c. Match SHA-256 hashed passwords
-   d. Determine status code
-   e. Pack outgoing packet
-6. Each thread send outgoing packet; end pair.
-7. Each thread end connection on outgoing packet.
+0. Multiprocessing generate login server with shared table. (True Parallel)   [OK]
+1. Register signal handlers for server.                                       [OK]
+2. Login server TCP setup to listen for all connections.                      [OK]
+3. Login server connection with database.                                     [OK]
+4. Login server thread per connection.                      (GIL 'Parallel')  [OK]
+5. Each thread receive incoming packet; start pair.                           [OK]
+   a. Unpack incoming packet                                                  [OK]
+   b. Query DB for using email                                                [OK]
+   c. Match SHA-256 hashed passwords                                          [NO]
+   d. Determine status code                                                   [OK]
+   e. Pack outgoing packet                                                    [OK]
+6. Each thread send outgoing packet; end pair.                                [OK]
+7. Each thread end connection on outgoing packet.                             [OK]
 
 =================================================
 
-login_packet_table = {
+login_packet_table = {                                                        [OK]
    0xa1  :  authent_user(packet)  # incoming
    0xa2  :  vertify_user(packet)  # outgoing
 }
 
-login_status_code = {
+login_status_code = {                                                         [OK]
    LOGIN_FAIL = 401
    LOGIN_USER = 200
    LOGIN_ADMN = 201
