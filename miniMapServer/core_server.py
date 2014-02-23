@@ -9,33 +9,31 @@ Documentation:
    login_server_specification.txt   :  describe login server design
 Changelog:
    [1000] - Initial core server backbone.
+   [1001] - Clean the code and added colors.
 '''
 
-import os
-import sys
-import time
-import signal
-import subprocess
-import multiprocessing
-
-import login_server
+import os                     # OS Servicess
+import sys                    # Environment
+import signal                 # Asynchronous Signals
+import colorama               # Color shell text
+import subprocess             # Execute shell commands
+import multiprocessing        # Spawn login, event, and map server
 
 # server version encoding
-appname = 'miniMap'
-codename = 'Gefjun'
-version = '1.0'
-encoding = 'utf-8'
-debugmode = True
+ver_app   = 'miniMap'         # Application Name
+ver_proj  = 'Gefjun'          # Project Name
+ver_pver  = '1.0'             # Project Version
+ver_encd  = 'utf-8'           # Default Encoding
 
 # server configuration
-core_serv_port = 36000
-core_serv_host = ''
-login_serv_name = 'mini-login'
-event_serv_name = 'mini-event'
-map_serv_name = 'mini-map'
-cur_serv_id = 0
+serv_port = 33600             # Server Port [33600 - 33700]
+serv_host = ''                # Server Host
+lserv_name = 'mini-login'     # Login server process name
+eserv_name = 'mini-event'     # Event server process name
+mserv_name = 'mini-map'       # Map server process name
+serv_id = 1001                # Unique postfix server ID
 
-# output formatting function
+# console text formatting functions
 def printfm(pref, cont):
    'Console print formatting for two strings.'
    print('{:.<30s}{:.>20s}'.format(pref, cont))   
@@ -50,86 +48,90 @@ def printsep(len):
 
 # asynchronous signal handlers
 def ctrlc_exit(signal_name, signal_frame): 
-   'Exit core server on ctrl+c.'
+   'Exit core server on ctrl + c.'
    sys.exit()
 
 # core server command handlers
-def core_server_status(serv_process):
-    printfm('trac: name', str(serv_process.name))
-    printfm('trac: pid', str(serv_process.pid))
-    printfm('trac: daemon', str(serv_process.daemon))
-    printfm('trac: exitcode', str(serv_process.exitcode))
-    printfm('trac: alive', str(serv_process.is_alive()))
+def server_status(serv_process):
+  'Display server process status attributes.'
+  printfm('info: name', str(serv_process.name))
+  printfm('info: pid', str(serv_process.pid))
+  printfm('info: daemon', str(serv_process.daemon))
+  printfm('info: exitcode', str(serv_process.exitcode))
+  printfm('info: alive', str(serv_process.is_alive()))
 
+def cmd_showmenu():
+  'Display all available commands registered in core server menu.'
+  for menu_item in sorted(cmd_menu_help, key = lambda contain: contain[0]):
+    printfmv(menu_item,15,cmd_menu_help[menu_item],35)
 
-def core_display_menu():
-   'Display all available commands registered in core server menu.'
-   printfm('command list', '')
-   for menu_item in core_serv_menu_help:
-      printfmv(menu_item,15,core_serv_menu_help[menu_item],35)
-   printsep(50)
-
-def core_shutdown():
+def cmd_showstat():
+  'Display all server processes and status'
+  for server_process in multiprocessing.active_childern():
+    server_status(server_process)
+def cmd_shutdown():
    'Signal all active servers to shutdown, release resources, and close core server.'
    sys.exit()
 
-def core_login():
+def cmd_loginstart():
    'Start the login server with standard configuration.'
-   login_serv = multiprocessing.Process(target = None, name = login_serv_name + str(cur_serv_id))
+   login_serv = multiprocessing.Process(target = None, name = lserv_name + str(serv_id))
    login_serv.daemon = True
    login_serv.start()
-   core_server_status(login_serv)
+   server_status(login_serv)
 
-core_serv_menu_help = {
-   'displaymenu'     : 'display available commands',
-   'displayserver'   : 'display all active servers',
-   'startlogin'      : 'start the login server',
-   'shutdown'        : 'shutdown core and active servers'
+cmd_menu_help = {
+   '1.showmenu'     : 'list available commands',
+   '2.showstatus'   : 'list server process status',
+   '3.startlogin'   : 'start login server',
+   '4.shutdown'     : 'shutdown all servers'
 }
 
-core_serv_menu =  {
-   'displaymenu'     : core_display_menu,
-   'displayserver'   : None,
-   'startlogin'      : core_login,
-   'shutdown'        : core_shutdown
+cmd_menu =  {
+   'showmenu'       : cmd_showmenu,
+   'showstatus'     : cmd_showstat,
+   'loginstart'     : cmd_loginstart,
+   'shutdown'       : cmd_shutdown
 }   
 
-# introduction output
-printsep(50)
-printfm('application', appname)
-printfm('server', codename)
-printfm('version', version)
-printfm('platform', sys.platform)
-printfm('encoding', encoding)
-printfm('CPU Cores', str(multiprocessing.cpu_count()))
-printsep(50)
+# Core server must be execute as top-level script
+if __name__ == '__main__':
+  colorama.init()
 
-# set utf-8 encoding on windowas
-if sys.platform == 'win32':
-   subprocess.call('chcp 65001', shell = True)                             # set console encoding to utf-8
-   printfm('info: setting console to utf-8', 'OK')
+  # system and version information
+  printsep(50)
+  printfm('app', ver_app)
+  printfm('proj', ver_proj)
+  printfm('pver', ver_pver)
+  printfm('encd', ver_encd)
+  printfm('defe', sys.getdefaultencoding())
+  printfm('plat', sys.platform)
+  printfm('core', str(multiprocessing.cpu_count()))
+  printsep(50)
 
-   subprocess.call('set PYTHONIOENCODING = %s' % encoding, shell = True)   # set python encoding to utf-8
-   printfm('info: setting python to utf-8', 'OK')
+  # set utf-8 encoding for win32
+  if sys.platform == 'win32':
+     subprocess.call('chcp 65001', shell = True)                             # set console encoding to utf-8
+     subprocess.call('set PYTHONIOENCODING = %s' % ver_encd, shell = True)   # set python encoding to utf-8
+     printfm('info: setting console to utf-8', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+     printfm('info: setting python to utf-8', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+     printsep(50)
 
-   printfm('info: system default encoding', sys.getdefaultencoding())      # output current encoding
-   printsep(50)
+  # set asynchronous signals
+  signal.signal(signal.SIGINT, ctrlc_exit)
+  signal.signal(signal.SIGTERM, ctrlc_exit)
+  printfm('info: registering SIGINT', str(signal.SIGINT) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+  printfm('info: registering SIGTERM', str(signal.SIGTERM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+  printsep(50)
 
-# set asynchronous signals
-signal.signal(signal.SIGINT, ctrlc_exit)
-printfm('info: registering SIGINT', str(signal.SIGINT) + '/OK')
-signal.signal(signal.SIGTERM, ctrlc_exit)
-printfm('info: registering SIGTERM', str(signal.SIGTERM) + '/OK')
-printsep(50)
+  # display initial command list
+  cmd_menu['showmenu']()
+  printsep(50)
 
-# display initial command list
-core_serv_menu['displaymenu']()
+  # core server commands
+  while True:
+     cmd = input('cmd >> ')             # retrieve user command and arguments
+     cmd = cmd.split(' ')
 
-# core server commands
-while True:
-   user_cmd = input('cmd >> ')                     # retrieve user command and arguments
-   user_cmd_parsed = user_cmd.split(' ')
-   if debugmode: print('echo: ', user_cmd_parsed)
-
-   if user_cmd_parsed[0] in core_serv_menu:        # execute user command
-      core_serv_menu[user_cmd_parsed[0]]()
+     if cmd[0] in cmd_menu:        # execute user command
+        cmd_menu[cmd[0]]()
