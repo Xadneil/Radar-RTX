@@ -12,7 +12,7 @@ Changelog:
    [1001] - Clean the code and added colors.
    [1002] - Initial login server.
 '''
-
+import time
 import os                     # OS Servicess
 import sys                    # Environment
 import queue                  # Queue empty exception
@@ -203,6 +203,12 @@ if __name__ == '__main__':
   serv_login_table = multiprocessing.Manager().dict()
   printfm('info: shared proxy login table', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
 
+  # start login server automatically
+  printsep(50)
+  cmd_menu['loginstart']()
+  cmd_menu['logintrack']()
+  time.sleep(5)                 # wait 5 seconds for core server to run thread and process
+  
   # display initial command list
   printsep(50)
   cmd_menu['showmenu']()

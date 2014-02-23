@@ -12,7 +12,6 @@ import sqlalchemy.orm                  # Object Relational Mapper
 import sqlalchemy.ext.declarative      # Declarative System
 import threading                       # Thread Client Connections
 import struct                          # Packing and unpacking data
-import Crypto
 import colorama
 
 # login server globals
