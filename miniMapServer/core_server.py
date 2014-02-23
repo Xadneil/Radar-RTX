@@ -39,9 +39,10 @@ eserv_name = 'mini-event'     # Event server process name
 mserv_name = 'mini-map'       # Map server process name
 
 # core server global
-serv_login = None
-serv_login_queue = None
-serv_login_track = None
+serv_login = None             # login server process
+serv_login_queue = None       # login server output queue
+serv_login_track = None       # login server output queue thread
+serv_login_table = None       # authenticated user table (shared) authentication id -> [list object]
 thread_global_lock = threading.Lock()
 
 # console text formatting functions
@@ -95,10 +96,14 @@ def cmd_showstat():
   for server_process in multiprocessing.active_children():
     server_status(server_process)
 
+def cmd_showlogint():
+  'Display all authenticated users'
+  print(serv_login_table)
+
 def cmd_shutdown():
   'Signal all active servers to shutdown, release resources, and close core server.'
   cmd_loginclose()
-  sys.exit()
+  os._exit(0)
 
 def cmd_loginstart():
   'Start the login server with standard configuration.'
@@ -110,7 +115,7 @@ def cmd_loginstart():
       return
   # Generate new login server
   serv_login_queue = multiprocessing.Queue()
-  serv_login = multiprocessing.Process(target = login_server.login_server, args = (serv_host, serv_port, serv_login_queue), name = lserv_name + str(serv_port))
+  serv_login = multiprocessing.Process(target = login_server.login_server, args = (serv_host, serv_port, serv_login_queue, serv_login_table), name = lserv_name + str(serv_port))
   serv_login.daemon = True
   serv_login.start()
   server_status(serv_login)
@@ -139,22 +144,23 @@ def cmd_loginclose():
   if serv_login != None:
     if serv_login.is_alive():
       printfmv('info',5,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
-      cmd_logintrack()
-      os.kill(serv_login.pid,signal.SIGTERM)                    # send login server SIGTERM
-      serv_login_queue.close()                                  # close the queue
+      os.kill(serv_login.pid,signal.SIGTERM)              # send login server SIGTERM
+      serv_login_queue.close()                            # close the queue
 
 cmd_menu_help = {
-   '1.showmenu'     : 'list available commands',
-   '2.showstatus'   : 'list server process status',
-   '3.loginstart'   : 'start login server process',
-   '4.logintrack'   : 'track login server messages',
-   '5.loginclose'   : 'close login server process',
-   '6.shutdown'     : 'shutdown all servers'
+   '1. showmenu'     :  'list available commands',
+   '2. showstatus'   :  'list server process status',
+   '3. showlogint'   :  'show global login table',
+   '4. loginstart'   :  'start login server process',
+   '5. logintrack'   :  'track login server messages',
+   '6. loginclose'   :  'close login server process',
+   '7. shutdown'     :  'shutdown all servers'
 }
 
 cmd_menu =  {
    'showmenu'       : cmd_showmenu,
    'showstatus'     : cmd_showstat,
+   'showlogint'     : cmd_showlogint,
    'loginstart'     : cmd_loginstart,
    'logintrack'     : cmd_logintrack,
    'loginclose'     : cmd_loginclose,
@@ -192,9 +198,13 @@ if __name__ == '__main__':
   printfm('info: registering SIGINT', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
   printfm('info: registering SIGTERM', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
   #printfm('info: registering SIGALRM', str(signal.SIGALRM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
-  printsep(50)
+
+  # setup shared process objects
+  serv_login_table = multiprocessing.Manager().dict()
+  printfm('info: shared proxy login table', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
 
   # display initial command list
+  printsep(50)
   cmd_menu['showmenu']()
   printsep(50)
 

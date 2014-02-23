@@ -34,19 +34,23 @@ Packet
    b. Query DB for using email                                                [OK]
    c. Match SHA-256 hashed passwords                                          [NO]
    d. Determine status code                                                   [OK]
-   e. Pack outgoing packet                                                    [OK]
+   e. Store authentication ID if authenticated                                [OK]
+   f. Pack outgoing packet                                                    [OK]
 6. Each thread send outgoing packet; end pair.                                [OK]
 7. Each thread end connection on outgoing packet.                             [OK]
 
 =================================================
 
-login_packet_table = {                                                        [OK]
+login_packet_table = {                                                        [YES]
    0xa1  :  authent_user(packet)  # incoming
    0xa2  :  vertify_user(packet)  # outgoing
+   0xa3  :  register_user(packet) # incoming
+   0xa4  :  register_stat(packet) # outgoing
 }
 
 login_status_code = {                                                         [OK]
    LOGIN_FAIL = 401
+   LOGIN_ALREADY = 471
    LOGIN_USER = 200
    LOGIN_ADMN = 201
    REGISTER_FAIL = 128
