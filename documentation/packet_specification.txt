@@ -10,7 +10,6 @@ Note: Best viewed in notepad++ or sublime text.
 1. Login Server   (0xa1 - 0xaf)  A series
 2. Event Server   (0xe1 - 0xef)  E series
 3. Map Server     (0xb1 - 0xdf)  BCD series
-4. Login Server Status Code
 =================================================
 Packet Format
 <op-code> <cts/stc> {
@@ -93,10 +92,3 @@ Event Server Communication Protocol
 
 3. Map Server     (0xb1 - 0xdf)  BCD series
 ! IMPORTANT: NOT STARTED !
-
-4. Login Server Status Code
-enum {
-   LOGIN_FAIL = 401
-   LOGIN_USER = 200
-   LOGIN_ADMN = 201
-}

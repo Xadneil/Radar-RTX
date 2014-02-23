@@ -2,22 +2,33 @@
             Core Server Documentation
 =================================================
 Auth: Jim Ching
+Desc: Explanation of module usage in server
 =================================================
-Detail Explanation
--------------------------------------------------
-   1. multiprocessing module
--------------------------------------------------
-   1. multiprocessing module
-      Python's parallel capcabilities are limited in two ways:
-      1. Threads are limited by the Global Interpreter Lock (GIL),
-         which effectively elminates utilization of multiple cores.
-      2. Forking processes are limited to Linux and Unix based system,
-         which is incompatible with Windows.
+Language : Python 3.3
+Platform : CentOS
+Encoding : utf-8
+Standard
+   : os              - Operating system service
+   : sys             - Shell environment
+   : queue           - Synchronization process/thread
+   : subprocess      - Execute Shell Commands
+Module
+   : signal          - Asynchronous server commands
+   : multiprocessing - Login, Event, Map server generator
+   : threading       - GIL threading
+   : colorama        - Color text
+=================================================
+1. multiprocessing module
+   Python's parallel capcabilities are limited in two ways:
+   1. Threads are limited by the Global Interpreter Lock (GIL),
+      which effectively elminates utilization of multiple cores.
+   2. Forking processes are limited to Linux and Unix based system,
+      which is incompatible with Windows.
 
-      The multiprocessing module spawns multiple PVM to get around the
-      GIL and fork limitations, as well as providing IPC tools between
-      all these spawned processes.
+   The multiprocessing module spawns multiple PVM to get around the
+   GIL and fork limitations, as well as providing IPC tools between
+   all these spawned processes.
 
-      Therefore the multiprocessing module will be the core module for
-      spawning login, event, and map servers, which all runs in parallel
-      and centralized.
+   Therefore the multiprocessing module will be the core module for
+   spawning login, event, and map servers, which all runs in parallel
+   and centralized.
