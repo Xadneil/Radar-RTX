@@ -12,6 +12,7 @@ Changelog:
    [1001] - Clean the code and added colors.
    [1002] - Initial login server.
    [1003] - Stable core and login release.
+   [1004] - Major bug fixes and output formatting
 '''
 import time
 import os                     # OS Servicess
@@ -29,11 +30,12 @@ import login_server
 # server version encoding
 ver_app   = 'miniMap'         # Application Name
 ver_proj  = 'Yggdrasil'       # Project Name
-ver_pver  = '1.1'             # Project Version
+ver_pver  = '1.2'             # Project Version
 ver_encd  = 'utf-8'           # Default Encoding
 
 # server configuration
-serv_port = 33600             # Server Port [33600 - 33700]
+serv_login_port = 33600       # Dedicate login server port
+serv_port = 33601             # Server Port [33600 - 33700]
 serv_host = ''                # Server Host
 lserv_name = 'mini-login'     # Login server process name
 eserv_name = 'mini-event'     # Event server process name
@@ -43,7 +45,7 @@ mserv_name = 'mini-map'       # Map server process name
 serv_login = None                     # login server process
 serv_login_comlink = None             # login server pipe
 serv_login_comlink_listener = None    # login server pipe process
-serv_login_user_table = None          # authenticated user table (shared) authentication id -> [list object]
+serv_login_table = None               # authenticated user table (shared) authentication id -> [list object]
 
 # console text formatting functions
 def printfm(pref, cont):
@@ -53,6 +55,7 @@ def printfm(pref, cont):
 def printfmv(pref, pref_s, cont, cont_s):
   'Console print formatting for two strings with variable width.'
   print(('{:.<%ds}{:.>%ds}' % (pref_s,cont_s)).format(pref, cont))  
+
 def printfmvc(pref, pref_s, cont, cont_s, prefixcolor, postfixcolor):
   'Console print formatting for two strings with variable width.'
   print(('%s{:`<%ds}{:`>%ds}%s' % (prefixcolor,pref_s,cont_s,postfixcolor)).format(pref, cont))  
@@ -100,45 +103,52 @@ def cmd_showstat():
 def cmd_showlogint():
   'Display all authenticated users'
   global serv_login_table
+  printsep(50)
   for login_user in serv_login_table.keys():
-    printfmv(colorama.Fore.YELLOW + login_user + colorama.Fore.WHITE, 0,'\nPrivilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
-    printfmv('Key: ', 0,'{:s}'.format(str(serv_login_table[login_user][0])),50)
+    authdecode = serv_login_table[login_user][0].decode('latin-1')
+    printfmv('Member', 10, colorama.Fore.GREEN + login_user + colorama.Fore.WHITE, 40 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+    printfmv('Access', 10, colorama.Fore.GREEN + str(serv_login_table[login_user][1]) + colorama.Fore.WHITE, 40 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+    printfmv('AuthID', 10, colorama.Fore.GREEN + authdecode + colorama.Fore.WHITE, 40)
+    printsep(50)
 
 def cmd_shutdown():
   'Signal all active servers to shutdown, release resources, and close core server.'
   cmd_loginclose()
   os._exit(0)
 
-def cmd_loginstart():
+def cmd_loginrestart():
   'Start the login server with standard configuration.'
-  global serv_login, serv_login_commlink, serv_login_comlink_listener, serv_port
-  # Support only one login server
+  global serv_login, serv_login_user_table, serv_login_commlink, serv_login_comlink_listener
   if serv_login != None and serv_login.is_alive():
-      printerr('login server has already been started.')
-      return
+    printfmv('\rinfo',6,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
+    serv_login_commlink[0].close()
+    serv_login_commlink[1].close()
+    serv_login_table.clear()
+    os.kill(serv_login.pid,signal.SIGTERM)                                  # send login server SIGTERM
+  time.sleep(3)                                                             # wait 1 seconds for core server to run thread and process
+
   # Generate new login server
   serv_login_commlink = multiprocessing.Pipe()                              # Establish comlink between core and login
   serv_login = multiprocessing.Process(                                     # Create login server process
     target = login_server.login_server, 
-    args = (serv_host, serv_port, serv_login_commlink, serv_login_table), 
-    name = lserv_name + str(serv_port)
+    args = (serv_host, serv_login_port, serv_login_commlink, serv_login_table), 
+    name = lserv_name + str(serv_login_port)
   )
   serv_login.daemon = True                                                  # Login server exits on core server exit
   serv_login.start()                                                        # Login server process begin
-  server_status(serv_login)                                                 # Echo login server status
   
   # Generate new login server listener
   serv_login_comlink_listener = multiprocessing.Process(                    # Start tracking login server
     target = logintrack,
     args = (serv_login_commlink[0],),
-    name = lserv_name + str(serv_port) + 'ComLink'
+    name = lserv_name + str(serv_login_port) + 'ComLink'
   )
   serv_login_comlink_listener.start()
-  serv_port += 1                                                            # Increment port number
 
+  time.sleep(1)                               # wait 1 seconds for core server to run thread and process
   printlserv('login server operational.')
   printlserv('login server comlink established.')
-
+  
 def logintrack(login_comlink):
   'Login server comlink listener process'
   colorama.init()
@@ -153,20 +163,11 @@ def logintrack(login_comlink):
     except: break
   os._exit(0)
 
-def cmd_loginclose():
-  'Terminate login server'
-  if serv_login != None and serv_login.is_alive():
-      printfmv('\rinfo',6,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
-      serv_login_commlink[0].close()
-      serv_login_commlink[1].close()
-      os.kill(serv_login.pid,signal.SIGTERM)              # send login server SIGTERM
-
 cmd_menu_help = {
    '1. showmenu'     :  'list available commands',
    '2. showstatus'   :  'list server process status',
    '3. showlogint'   :  'show global login table',
-   '4. loginstart'   :  'start login server process',
-   '5. loginclose'   :  'close login server process',
+   '4. loginrestart' :  'loginrestart login server process',
    '6. shutdown'     :  'shutdown all servers'
 }
 
@@ -174,8 +175,7 @@ cmd_menu =  {
    'showmenu'       : cmd_showmenu,
    'showstatus'     : cmd_showstat,
    'showlogint'     : cmd_showlogint,
-   'loginstart'     : cmd_loginstart,
-   'loginclose'     : cmd_loginclose,
+   'loginrestart'     : cmd_loginrestart,
    'shutdown'       : cmd_shutdown
 }   
 
@@ -228,8 +228,7 @@ if __name__ == '__main__':
   printfmv('info: shared proxy login table', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
   # start login server automatically
   printsep(50)
-  cmd_menu['loginstart']()
-  time.sleep(1)                               # wait 1 seconds for core server to run thread and process
+  cmd_menu['loginrestart']()
 
   # display initial command list
   printsep(50)

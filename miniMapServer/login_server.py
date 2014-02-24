@@ -94,7 +94,7 @@ def authent_user(packet):
          lserv_stdout.send('matching password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
          lserv_stdout.send('matching privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.GREEN + str(status_code) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.GREEN + str(authentication_id) + colorama.Fore.WHITE))
+         lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.GREEN + authentication_id.decode('latin-1') + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet event_port %s' % (colorama.Fore.GREEN + str(event_port) + colorama.Fore.WHITE))
 
       # add user to login table
