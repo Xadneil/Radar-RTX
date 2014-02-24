@@ -11,6 +11,7 @@ Changelog:
    [1000] - Initial core server backbone.
    [1001] - Clean the code and added colors.
    [1002] - Initial login server.
+   [1003] - Stable core and login release.
 '''
 import time
 import os                     # OS Servicess
@@ -39,48 +40,42 @@ eserv_name = 'mini-event'     # Event server process name
 mserv_name = 'mini-map'       # Map server process name
 
 # core server global
-serv_login = None             # login server process
-serv_login_queue = None       # login server output queue
-serv_login_track = None       # login server output queue thread
-serv_login_table = None       # authenticated user table (shared) authentication id -> [list object]
-thread_global_lock = threading.Lock()
+serv_login = None                     # login server process
+serv_login_comlink = None             # login server pipe
+serv_login_comlink_listener = None    # login server pipe process
+serv_login_user_table = None          # authenticated user table (shared) authentication id -> [list object]
 
 # console text formatting functions
 def printfm(pref, cont):
-   'Console print formatting for two strings.'
-   with thread_global_lock:
-    print('{:.<30s}{:.>20s}'.format(pref, cont))   
+  'Console print formatting for two strings.'
+  print('{:.<30s}{:.>20s}'.format(pref, cont))   
 
 def printfmv(pref, pref_s, cont, cont_s):
-   'Console print formatting for two strings with variable width.'
-   with thread_global_lock:
-    print(('{:.<%ds}{:.>%ds}' % (pref_s,cont_s)).format(pref, cont))  
+  'Console print formatting for two strings with variable width.'
+  print(('{:.<%ds}{:.>%ds}' % (pref_s,cont_s)).format(pref, cont))  
 
 def printsep(len):
-   'Print server line separators.'
-   with thread_global_lock:
-    print('%s' % ('=' * len))
+  'Print server line separators.'
+  print('%s' % ('=' * len))
 
 def printerr(err):
   'Print exception messages with color'
-  with thread_global_lock:
-    print(colorama.Fore.RED + colorama.Style.BRIGHT + 'errr:' + colorama.Fore.WHITE + colorama.Style.NORMAL, err)
+  print(colorama.Fore.RED + colorama.Style.BRIGHT + 'errr:' + colorama.Fore.WHITE + colorama.Style.NORMAL, err)
 
 def printlserv(mes):
   'Print login server messages with color'
-  with thread_global_lock:
-    print('\r' + colorama.Fore.YELLOW + colorama.Style.BRIGHT + 'lsev:' + colorama.Fore.WHITE + colorama.Style.NORMAL, mes)
+  print('\r' + colorama.Fore.YELLOW + colorama.Style.BRIGHT + 'lsev:' + colorama.Fore.WHITE + colorama.Style.NORMAL, mes)
 
 # asynchronous signal handlers
 def ctrlc_exit(signal_name, signal_frame): 
    'Exit core server on ctrl + c.'
    cmd_shutdown()
-   sys.exit()
+   os._exit(0)
 
 # core server command handlers
 def server_status(serv_process):
   'Display server process status attributes.'
-  printfm('name', str(serv_process.name))
+  printfmv('name',5, str(serv_process.name),45)
   printfm('pid', str(serv_process.pid))
   printfm('daemon', str(serv_process.daemon))
   printfm('exitcode', str(serv_process.exitcode))
@@ -100,7 +95,7 @@ def cmd_showlogint():
   'Display all authenticated users'
   global serv_login_table
   for login_user in serv_login_table.keys():
-    printfmv(colorama.Fore.RED + colorama.Style.BRIGHT + login_user + colorama.Fore.WHITE + colorama.Style.NORMAL, 0,' - Privilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
+    printfmv(colorama.Fore.RED + colorama.Style.BRIGHT + login_user + colorama.Fore.WHITE + colorama.Style.NORMAL, 0,'\nPrivilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
     printfmv('Key: ', 0,'{:s}'.format(str(serv_login_table[login_user][0])),50)
 
 def cmd_shutdown():
@@ -110,54 +105,65 @@ def cmd_shutdown():
 
 def cmd_loginstart():
   'Start the login server with standard configuration.'
-  global serv_login, serv_login_queue, serv_port
+  global serv_login, serv_login_commlink, serv_login_comlink_listener, serv_port
   # Support only one login server
-  if serv_login != None:
-    if serv_login.is_alive():
-      printerr('login server has already started.')
+  if serv_login != None and serv_login.is_alive():
+      printerr('login server has already been started.')
       return
   # Generate new login server
-  serv_login_queue = multiprocessing.Queue()
-  serv_login = multiprocessing.Process(target = login_server.login_server, args = (serv_host, serv_port, serv_login_queue, serv_login_table), name = lserv_name + str(serv_port))
-  serv_login.daemon = True
-  serv_login.start()
-  server_status(serv_login)
-  serv_port += 1
+  serv_login_commlink = multiprocessing.Pipe()                              # Establish comlink between core and login
+  serv_login = multiprocessing.Process(                                     # Create login server process
+    target = login_server.login_server, 
+    args = (serv_host, serv_port, serv_login_commlink, serv_login_table), 
+    name = lserv_name + str(serv_port)
+  )
+  serv_login.daemon = True                                                  # Login server exits on core server exit
+  serv_login.start()                                                        # Login server process begin
+  server_status(serv_login)                                                 # Echo login server status
+  serv_port += 1                                                            # Increment port number
+  # Generate new login server listener
+  serv_login_comlink_listener = multiprocessing.Process(                    # Start tracking login server
+    target = logintrack,
+    args = (serv_login_commlink[0],),
+    name = lserv_name + str(serv_port) + 'ComLink'
+  )
+  serv_login_comlink_listener.start()
 
-def cmd_logintrack():
-  'Read login server messages from queue.'
-  global serv_login_track
-  if serv_login == None or serv_login_queue == None: return
-  if serv_login_track == None or not serv_login_track.is_alive():
-    serv_login_track = threading.Thread(target = logintrack)
-    serv_login_track.daemon = True
-    serv_login_track.start()
-  else:
-    printerr('login server tracking has already started.')
-  
-def logintrack():
+  printlserv('login server operational.')
+  printlserv('login server comlink established.')
+
+def logintrack(login_comlink):
+  'Login server comlink listener process'
+  colorama.init()
   while True:
-      try: printlserv(serv_login_queue.get(block = True)) # retrieve output messages
-      except queue.Empty: pass                            # block for more messages
-      except EOFError: break                              # login server closed
-      except IOError: break                               # login server queue closed
+    try:
+      if login_comlink.poll(15):
+        message = login_comlink.recv()
+        printlserv(message)
+    except EOFError:
+      printlserv('communication with login server comlink severed.')
+      break
+    except:
+      printlserv('mayday! mayday! mayday!')
+      printlserv(sys.exc_info()[1])
+      break
+  os._exit(0)
 
 def cmd_loginclose():
   'Terminate login server'
-  if serv_login != None:
-    if serv_login.is_alive():
+  if serv_login != None and serv_login.is_alive():
       printfmv('info',5,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
+      serv_login_commlink[0].close()
+      serv_login_commlink[1].close()
       os.kill(serv_login.pid,signal.SIGTERM)              # send login server SIGTERM
-      serv_login_queue.close()                            # close the queue
 
 cmd_menu_help = {
    '1. showmenu'     :  'list available commands',
    '2. showstatus'   :  'list server process status',
    '3. showlogint'   :  'show global login table',
    '4. loginstart'   :  'start login server process',
-   '5. logintrack'   :  'track login server messages',
-   '6. loginclose'   :  'close login server process',
-   '7. shutdown'     :  'shutdown all servers'
+   '5. loginclose'   :  'close login server process',
+   '6. shutdown'     :  'shutdown all servers'
 }
 
 cmd_menu =  {
@@ -165,7 +171,6 @@ cmd_menu =  {
    'showstatus'     : cmd_showstat,
    'showlogint'     : cmd_showlogint,
    'loginstart'     : cmd_loginstart,
-   'logintrack'     : cmd_logintrack,
    'loginclose'     : cmd_loginclose,
    'shutdown'       : cmd_shutdown
 }   
@@ -173,7 +178,7 @@ cmd_menu =  {
 # Core server must be execute as top-level script
 if __name__ == '__main__':
   # set color settings
-  colorama.init()             
+  colorama.init()
 
   # system and version information
   printsep(50)
@@ -209,8 +214,7 @@ if __name__ == '__main__':
   # start login server automatically
   printsep(50)
   cmd_menu['loginstart']()
-  cmd_menu['logintrack']()
-  time.sleep(5)                 # wait 5 seconds for core server to run thread and process
+  time.sleep(1)                 # wait 1 seconds for core server to run thread and process
 
   # display initial command list
   printsep(50)
