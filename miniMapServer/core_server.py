@@ -29,7 +29,7 @@ import login_server
 # server version encoding
 ver_app   = 'miniMap'         # Application Name
 ver_proj  = 'Yggdrasil'       # Project Name
-ver_pver  = '1.0'             # Project Version
+ver_pver  = '1.1'             # Project Version
 ver_encd  = 'utf-8'           # Default Encoding
 
 # server configuration
@@ -53,6 +53,9 @@ def printfm(pref, cont):
 def printfmv(pref, pref_s, cont, cont_s):
   'Console print formatting for two strings with variable width.'
   print(('{:.<%ds}{:.>%ds}' % (pref_s,cont_s)).format(pref, cont))  
+def printfmvc(pref, pref_s, cont, cont_s, prefixcolor, postfixcolor):
+  'Console print formatting for two strings with variable width.'
+  print(('%s{:`<%ds}{:`>%ds}%s' % (prefixcolor,pref_s,cont_s,postfixcolor)).format(pref, cont))  
 
 def printsep(len):
   'Print server line separators.'
@@ -75,7 +78,7 @@ def ctrlc_exit(signal_name, signal_frame):
 # core server command handlers
 def server_status(serv_process):
   'Display server process status attributes.'
-  printfmv('name',5, str(serv_process.name),45)
+  printfmv('name',5, str(colorama.Fore.RED + colorama.Style.BRIGHT + serv_process.name + colorama.Fore.WHITE + colorama.Style.NORMAL),45 + len(colorama.Fore.RED + colorama.Style.BRIGHT+ colorama.Fore.WHITE + colorama.Style.NORMAL))
   printfm('pid', str(serv_process.pid))
   printfm('daemon', str(serv_process.daemon))
   printfm('exitcode', str(serv_process.exitcode))
@@ -86,16 +89,19 @@ def cmd_showmenu():
   for menu_item in sorted(cmd_menu_help, key = lambda contain: contain[0]):
     printfmv(menu_item,15,cmd_menu_help[menu_item],35)
 
+
 def cmd_showstat():
   'Display all server processes and status'
+  printsep(50)
   for server_process in multiprocessing.active_children():
     server_status(server_process)
+    printsep(50)
 
 def cmd_showlogint():
   'Display all authenticated users'
   global serv_login_table
   for login_user in serv_login_table.keys():
-    printfmv(colorama.Fore.RED + colorama.Style.BRIGHT + login_user + colorama.Fore.WHITE + colorama.Style.NORMAL, 0,'\nPrivilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
+    printfmv(colorama.Fore.YELLOW + login_user + colorama.Fore.WHITE, 0,'\nPrivilege: {:s}'.format(str(serv_login_table[login_user][1])),0)
     printfmv('Key: ', 0,'{:s}'.format(str(serv_login_table[login_user][0])),50)
 
 def cmd_shutdown():
@@ -120,7 +126,7 @@ def cmd_loginstart():
   serv_login.daemon = True                                                  # Login server exits on core server exit
   serv_login.start()                                                        # Login server process begin
   server_status(serv_login)                                                 # Echo login server status
-  serv_port += 1                                                            # Increment port number
+  
   # Generate new login server listener
   serv_login_comlink_listener = multiprocessing.Process(                    # Start tracking login server
     target = logintrack,
@@ -128,6 +134,7 @@ def cmd_loginstart():
     name = lserv_name + str(serv_port) + 'ComLink'
   )
   serv_login_comlink_listener.start()
+  serv_port += 1                                                            # Increment port number
 
   printlserv('login server operational.')
   printlserv('login server comlink established.')
@@ -141,18 +148,15 @@ def logintrack(login_comlink):
         message = login_comlink.recv()
         printlserv(message)
     except EOFError:
-      printlserv('communication with login server comlink severed.')
+      printlserv('comlink with login server severed.')
       break
-    except:
-      printlserv('mayday! mayday! mayday!')
-      printlserv(sys.exc_info()[1])
-      break
+    except: break
   os._exit(0)
 
 def cmd_loginclose():
   'Terminate login server'
   if serv_login != None and serv_login.is_alive():
-      printfmv('info',5,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
+      printfmv('\rinfo',6,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
       serv_login_commlink[0].close()
       serv_login_commlink[1].close()
       os.kill(serv_login.pid,signal.SIGTERM)              # send login server SIGTERM
@@ -180,9 +184,21 @@ if __name__ == '__main__':
   # set color settings
   colorama.init()
 
+  # Super cool ANSCII representing
+  intro_color_prefix = colorama.Fore.WHITE + colorama.Back.RED + colorama.Style.BRIGHT
+  intro_color_postfix = colorama.Fore.WHITE + colorama.Back.BLACK + colorama.Style.NORMAL
+  print('%s%s%s' % (intro_color_prefix,'=' * 50,intro_color_postfix))
+  line1 = intro_color_prefix+"            _          _                          "+intro_color_postfix
+  line2 = intro_color_prefix+"    _ __   (_)  _ _   (_)  _ __    __ _   _ __    "+intro_color_postfix
+  line3 = intro_color_prefix+"   | '  \\  | | | ' \\  | | | '  \\  / _` | | '_ \\   "+intro_color_postfix
+  line4 = intro_color_prefix+"   |_|_|_| |_| |_||_| |_| |_|_|_| \\__,_| | .__/   "+intro_color_postfix
+  line5 = intro_color_prefix+"                                         |_|      "+intro_color_postfix
+  line6 = intro_color_prefix+"   Jim Ching / Danial Flaws / David Richardson    "+intro_color_postfix
+  print(line1, line2, line3, line4, line5, line6, sep = '\n')
+  print('%s%s%s' % (intro_color_prefix,'=' * 50,intro_color_postfix))
+
   # system and version information
-  printsep(50)
-  printfm('app', ver_app)
+  printfm('appl', ver_app)
   printfm('proj', ver_proj)
   printfm('pver', ver_pver)
   printfm('encd', ver_encd)
@@ -195,26 +211,25 @@ if __name__ == '__main__':
   if sys.platform == 'win32':
      subprocess.call('chcp 65001', shell = True)                             # set console encoding to utf-8
      subprocess.call('set PYTHONIOENCODING = %s' % ver_encd, shell = True)   # set python encoding to utf-8
-     printfm('info: setting console to utf-8', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
-     printfm('info: setting python to utf-8', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+     printfmv('info: setting console to utf-8', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+     printfmv('info: setting python to utf-8', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
 
   # set asynchronous signals
   signal.signal(signal.SIGINT, ctrlc_exit)
   signal.signal(signal.SIGTERM, ctrlc_exit)
   #signal.signal(signal.SIGALRM, track_serv)
   #signal.setitimer(signal.ITIMER_REAL, 5, 5)
-  printfm('info: registering SIGINT', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
-  printfm('info: registering SIGTERM', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
+  printfmv('info: registering SIGINT', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+  printfmv('info: registering SIGTERM', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
   #printfm('info: registering SIGALRM', str(signal.SIGALRM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
 
   # setup shared process objects
   serv_login_table = multiprocessing.Manager().dict()
-  printfm('info: shared proxy login table', colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
-
+  printfmv('info: shared proxy login table', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
   # start login server automatically
   printsep(50)
   cmd_menu['loginstart']()
-  time.sleep(1)                 # wait 1 seconds for core server to run thread and process
+  time.sleep(1)                               # wait 1 seconds for core server to run thread and process
 
   # display initial command list
   printsep(50)

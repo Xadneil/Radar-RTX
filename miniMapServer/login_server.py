@@ -37,7 +37,7 @@ class MiniMapMember(db_base):
    password = sqlalchemy.Column(sqlalchemy.String(64))
    privilege = sqlalchemy.Column(sqlalchemy.Integer)
    def __str__(self):
-      return '%25s %25s %25s' % (self.email,self.password,self.privilege)
+      return 'User: %25s %25s %25s' % (self.email,self.password,self.privilege)
 
 # termination signal
 def async_shutdown(stack_name, stack_frame):
@@ -90,9 +90,9 @@ def authent_user(packet):
          lserv_auth = bytes(temp_auth)
 
       if debugmode:
-         lserv_stdout.send('matched database entry email %s' % (colorama.Fore.GREEN + match_email.email + colorama.Fore.WHITE))
-         lserv_stdout.send('matched database entry password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
-         lserv_stdout.send('matched database entry privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
+         lserv_stdout.send('matching email %s' % (colorama.Fore.GREEN + match_email.email + colorama.Fore.WHITE))
+         lserv_stdout.send('matching password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
+         lserv_stdout.send('matching privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.GREEN + str(status_code) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.GREEN + str(authentication_id) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet event_port %s' % (colorama.Fore.GREEN + str(event_port) + colorama.Fore.WHITE))
@@ -149,9 +149,9 @@ def register_stat(packet): return b'0'
 
 login_packet = {
    0xa1 : authent_user,    # serv packet handler
-   0xa2 : vertify_user,    # test packet handler
-   0xa3 : register_user,   # serv packet handler
-   0xa4 : register_stat    # test packet handler
+   #0xa2 : vertify_user,   # test packet handler
+   0xa3 : register_user    # serv packet handler
+   #0xa4 : register_stat   # test packet handler
 }
 
 # login server client thread
@@ -218,5 +218,10 @@ if __name__ == '__main__':
 
    # add administrator account
    init_session = db_session()
-   init_session.add(MiniMapMember(email = 'tricky.loki3@gmail.com', password = 'machinehearts', privilege = '201'))
+   init_session.add(MiniMapMember(email = 'tricky.loki3@gmail.com', password = 'machineheart', privilege = '201'))
+   init_session.add(MiniMapMember(email = 'deflaw54@gmail.com', password = 'machinemind', privilege = '201'))
+   init_session.add(MiniMapMember(email = 'david2413@gmail.com', password = 'machinemen', privilege = '201'))
    init_session.commit()
+
+   for member in init_session.query(MiniMapMember).all():
+      print(member)
