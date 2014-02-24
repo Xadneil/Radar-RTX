@@ -69,8 +69,8 @@ def authent_user(packet):
 
    # Display client packet on debug mode
    if debugmode:
-      lserv_stdout.send('email received %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
-      lserv_stdout.send('password received %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
+      lserv_stdout.send('email %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
+      lserv_stdout.send('password %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
 
    # Local session per client
    local_session = db_session()
@@ -90,12 +90,13 @@ def authent_user(packet):
          lserv_auth = bytes(temp_auth)
 
       if debugmode:
-         lserv_stdout.send('matching email %s' % (colorama.Fore.GREEN + match_email.email + colorama.Fore.WHITE))
-         lserv_stdout.send('matching password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
-         lserv_stdout.send('matching privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.GREEN + str(status_code) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.GREEN + authentication_id.decode('latin-1') + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet event_port %s' % (colorama.Fore.GREEN + str(event_port) + colorama.Fore.WHITE))
+         #lserv_stdout.send('matching email %s' % (colorama.Fore.GREEN + match_email.email + colorama.Fore.WHITE))
+         #lserv_stdout.send('matching password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
+         #lserv_stdout.send('matching privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
+         lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
+         lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
+         lserv_stdout.send('authentication_id %s' % (colorama.Fore.YELLOW + authentication_id.decode('latin-1') + colorama.Fore.WHITE))
+         lserv_stdout.send('event_port %s' % (colorama.Fore.YELLOW + str(event_port) + colorama.Fore.WHITE))
 
       # add user to login table
       user_entry = { email : (authentication_id, status_code) }
@@ -111,6 +112,7 @@ def authent_user(packet):
 
       if debugmode:
          lserv_stdout.send('ummatched email %s' % (colorama.Fore.RED + email + colorama.Fore.WHITE))
+         lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.RED + str(status_code) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.RED + str(status_code) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.RED + str(authentication_id) + colorama.Fore.WHITE))
          lserv_stdout.send('pack packet event_port %s' % (colorama.Fore.RED + str(event_port) + colorama.Fore.WHITE))
@@ -141,6 +143,10 @@ def register_user(packet):
    # return successful packet
    packet_header = 0xa2
    status_code = login_status_code['REGISTER_SUCCESS']
+
+   if debugmode:
+      lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
+      lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
    return struct.pack('>2h', packet_header, status_code)
 
 # client packet handlers
@@ -160,7 +166,7 @@ def login_packet_handler(user_sock, user_addr):
    # Retrieve the packet header
    client_packet_header = user_sock.recv(2)
    packet_header = struct.unpack('>h', client_packet_header)[0]
-   lserv_stdout.send('packet code %s' % (colorama.Fore.RED + str(packet_header) + colorama.Fore.WHITE))
+   lserv_stdout.send('packet header %s' % (colorama.Fore.GREEN + str(packet_header) + colorama.Fore.WHITE))
 
    # Retrieve the packet content and call packet handler
    client_packet_content = user_sock.recv(1024)
@@ -198,7 +204,7 @@ def login_server(host, port, lstdout, ltable):
    # begin listening for clients
    while True:
       user_sock, user_addr = lserv_sock.accept()   # block for connections
-      lserv_stdout.send('received connection from {}'.format(user_addr))                       # track client connection messages
+      lserv_stdout.send('connection from {}'.format(user_addr))                       # track client connection messages
       threading.Thread(                            # run a new thread per client
          target = login_packet_handler, 
          args = (user_sock, user_addr)

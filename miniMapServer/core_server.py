@@ -113,7 +113,12 @@ def cmd_showlogint():
 
 def cmd_shutdown():
   'Signal all active servers to shutdown, release resources, and close core server.'
-  cmd_loginclose()
+  if serv_login != None and serv_login.is_alive():
+    printfmv('\rinfo',6,'killing %s (%d)' % (serv_login.name, serv_login.pid),45)
+    serv_login_commlink[0].close()
+    serv_login_commlink[1].close()
+    serv_login_table.clear()
+    os.kill(serv_login.pid,signal.SIGTERM)                                  # send login server SIGTERM
   os._exit(0)
 
 def cmd_loginrestart():
@@ -167,7 +172,7 @@ cmd_menu_help = {
    '1. showmenu'     :  'list available commands',
    '2. showstatus'   :  'list server process status',
    '3. showlogint'   :  'show global login table',
-   '4. loginrestart' :  'loginrestart login server process',
+   '4. loginrestart' :  'restart login server process',
    '6. shutdown'     :  'shutdown all servers'
 }
 
