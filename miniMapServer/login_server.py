@@ -3,7 +3,7 @@ File: login_server.py
 Auth: Jim Ching
 '''
 import random                          # Randomize authitentication id addition
-import sys
+import sys                             # Exiting the process
 import os                              # Random authentication identifier
 import signal                          # Termination Signal
 import multiprocessing                 # Terminate Process
@@ -21,8 +21,10 @@ lserv_sock = None                      # login server socket
 lserv_stdout = None                    # login server pipe
 lserv_table = None                     # global login user table
 
-lserv_auth = os.urandom(16)
-lserv_auth_lock = threading.Lock()
+# synchronization globals
+lserv_auth = os.urandom(16)            # initial random authentication id
+lserv_auth_lock = threading.Lock()     # global lock on modifying auth id
+lserv_stdout_lock = threading.Lock()   # global lock on stdout
 
 # initialize engine, declarative system, and session
 db_engine = sqlalchemy.create_engine('sqlite:///login.db', isolation_level = 'SERIALIZABLE')
@@ -42,10 +44,10 @@ class MiniMapMember(db_base):
 # termination signal
 def async_shutdown(stack_name, stack_frame):
    "Core server's termination signal to login server."
+   global lserv_sock, lserv_stdout
    lserv_sock.close()                                 # close network connection
    lserv_stdout.close()
-   #lserv_process = multiprocessing.current_process() # terminate login server process
-   os._exit(0)
+   sys.exit(0)
 
 # login status code
 login_status_code = {
@@ -67,11 +69,6 @@ def authent_user(packet):
    password = packet_content[1]
    password = password[:password.find(0x00)].decode('utf-8')    # truncate the \x00 bytes for password and decode
 
-   # Display client packet on debug mode
-   if debugmode:
-      lserv_stdout.send('email %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
-      lserv_stdout.send('password %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
-
    # Local session per client
    local_session = db_session()
    match_email = local_session.query(MiniMapMember).filter(MiniMapMember.email == email).first()
@@ -89,15 +86,6 @@ def authent_user(packet):
          temp_auth[random.randint(0,15)] += 1
          lserv_auth = bytes(temp_auth)
 
-      if debugmode:
-         #lserv_stdout.send('matching email %s' % (colorama.Fore.GREEN + match_email.email + colorama.Fore.WHITE))
-         #lserv_stdout.send('matching password %s' % (colorama.Fore.GREEN + match_email.password + colorama.Fore.WHITE))
-         #lserv_stdout.send('matching privilege %s' % (colorama.Fore.GREEN + str(match_email.privilege) + colorama.Fore.WHITE))
-         lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
-         lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
-         lserv_stdout.send('authentication_id %s' % (colorama.Fore.YELLOW + authentication_id.decode('latin-1') + colorama.Fore.WHITE))
-         lserv_stdout.send('event_port %s' % (colorama.Fore.YELLOW + str(event_port) + colorama.Fore.WHITE))
-
       # add user to login table
       user_entry = { email : (authentication_id, status_code) }
       lserv_table.update(user_entry)
@@ -110,12 +98,17 @@ def authent_user(packet):
       authentication_id = b'0'
       event_port = 0
 
-      if debugmode:
-         lserv_stdout.send('ummatched email %s' % (colorama.Fore.RED + email + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.RED + str(status_code) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet status_code %s' % (colorama.Fore.RED + str(status_code) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet authentication_id %s' % (colorama.Fore.RED + str(authentication_id) + colorama.Fore.WHITE))
-         lserv_stdout.send('pack packet event_port %s' % (colorama.Fore.RED + str(event_port) + colorama.Fore.WHITE))
+   # Display incoming and outgoing packet
+   if debugmode:
+      with lserv_stdout_lock:
+         lserv_stdout.send('packet header %s' % (colorama.Fore.GREEN + str(int('0xa1',16)) + colorama.Fore.WHITE))
+         lserv_stdout.send('email %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
+         lserv_stdout.send('password %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
+         lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
+         lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
+         lserv_stdout.send('authentication_id %s' % (colorama.Fore.YELLOW + str(authentication_id) + colorama.Fore.WHITE))
+         lserv_stdout.send('event_port %s' % (colorama.Fore.YELLOW + str(event_port) + colorama.Fore.WHITE))
+
    local_session.close()
    return struct.pack('>2h16sh', packet_header, status_code, authentication_id, event_port)
 
@@ -130,34 +123,37 @@ def register_user(packet):
    password = packet_content[1]
    password = password[:password.find(0x00)].decode('utf-8')    # truncate the \x00 bytes for password and decode
 
-   # create registeration user
+   # Test for existence in DB
    local_session = db_session()
-   local_session.add(MiniMapMember(email = email, password = password, privilege = '200'))
-   local_session.commit()
+   exist_email = local_session.query(MiniMapMember).filter(MiniMapMember.email == email).first()
 
-   # Display client packet on debug mode
+   # Don't register on the same email twice
+   if exist_email == None:
+      # create registeration user
+      local_session.add(MiniMapMember(email = email, password = password, privilege = '200'))
+      local_session.commit()
+
+      # return successful packet
+      packet_header = 0xa4
+      status_code = login_status_code['REGISTER_SUCCESS']
+   else:
+      # return failure packet
+      packet_header = 0xa4
+      status_code = login_status_code['REGISTER_FAIL']
+
+   # Return packet
    if debugmode:
-      lserv_stdout.send('email received %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
-      lserv_stdout.send('password received %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
-
-   # return successful packet
-   packet_header = 0xa2
-   status_code = login_status_code['REGISTER_SUCCESS']
-
-   if debugmode:
-      lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
-      lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
+      with lserv_stdout_lock:
+         lserv_stdout.send('packet header %s' % (colorama.Fore.GREEN + str(int('0xa3',16)) + colorama.Fore.WHITE))
+         lserv_stdout.send('email received %s' % (colorama.Fore.GREEN + email + colorama.Fore.WHITE))
+         lserv_stdout.send('password received %s' % (colorama.Fore.GREEN + password + colorama.Fore.WHITE))
+         lserv_stdout.send('packet header %s' % (colorama.Fore.YELLOW + str(packet_header) + colorama.Fore.WHITE))
+         lserv_stdout.send('status_code %s' % (colorama.Fore.YELLOW + str(status_code) + colorama.Fore.WHITE))
    return struct.pack('>2h', packet_header, status_code)
-
-# client packet handlers
-def vertify_user(packet): return b'0'
-def register_stat(packet): return b'0'
 
 login_packet = {
    0xa1 : authent_user,    # serv packet handler
-   #0xa2 : vertify_user,   # test packet handler
    0xa3 : register_user    # serv packet handler
-   #0xa4 : register_stat   # test packet handler
 }
 
 # login server client thread
@@ -166,11 +162,13 @@ def login_packet_handler(user_sock, user_addr):
    # Retrieve the packet header
    client_packet_header = user_sock.recv(2)
    packet_header = struct.unpack('>h', client_packet_header)[0]
-   lserv_stdout.send('packet header %s' % (colorama.Fore.GREEN + str(packet_header) + colorama.Fore.WHITE))
-
-   # Retrieve the packet content and call packet handler
-   client_packet_content = user_sock.recv(1024)
-   server_packet = login_packet[packet_header](client_packet_content)
+   
+   # Check if packet exist in packet table
+   if packet_header in login_packet.keys():
+      client_packet_content = user_sock.recv(1024)
+      server_packet = login_packet[packet_header](client_packet_content)
+   else:
+      server_packet = b'\x00'
 
    # Send back a message to the client and close the socket
    user_sock.send(server_packet)
@@ -204,13 +202,13 @@ def login_server(host, port, lstdout, ltable):
    # begin listening for clients
    while True:
       user_sock, user_addr = lserv_sock.accept()   # block for connections
-      lserv_stdout.send('connection from {}'.format(user_addr))                       # track client connection messages
       threading.Thread(                            # run a new thread per client
          target = login_packet_handler, 
          args = (user_sock, user_addr)
       ).start()
 
    # shutdown the login server
+   lserv_stdout.send('login server exit prematurely without core server consent')
    lserv_sock.close()                                 # close network connection
    multiprocessing.current_process().terminate()      # terminate login server process
 

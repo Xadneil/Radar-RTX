@@ -76,10 +76,13 @@ Packets
 
    0xe2 stc {
       short(2)    : packet header
-      integer(4)  : event id
-      string(32)  : event name
-      string(32)  : team one name
-      string(32)  : team two name
+      short(2)    : total # of events
+      {  // repeating depending on above
+         integer(4)  : event id
+         string(32)  : event name
+         string(32)  : team one name
+         string(32)  : team two name
+      }
    }
 
    0xe3 cts {
@@ -96,7 +99,6 @@ Packets
 Event Server Communication Protocol
    0. User connects to the Event server using the port number sent by the server.
    1. User send authentication ID to Event server for verification.
-   ! IMPORTANT: Only one event supported at the moment !
-   2. Event verifies authentication id and sends back an event packet with associated information.
+   2. Event verifies authentication id and sends back an event packet with associate information.
    3. User selects an event and sends back to event server authentication and event id.
    4. Event server verifies authentication id again and sends back the port number to the event's map server.

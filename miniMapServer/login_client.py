@@ -7,8 +7,8 @@ import struct
 import threading
 import multiprocessing
 
-#serv_host = '50.62.212.171'
-serv_host = 'localhost'
+serv_host = '50.62.212.171'
+#serv_host = 'localhost'
 serv_port = 33600
 
 
@@ -40,6 +40,14 @@ if __name__ == '__main__':
       email = ('{}@gmail.com'.format(''.join([chr(random.randint(0,25) + 65) for i in range(5)]))).encode('utf-8')
       password = ('{}'.format(''.join([chr(random.randint(0,25) + 65) for i in range(5)]))).encode('utf-8')
       client_packet = struct.pack('>h64s64s', header, email, password)
+   elif sys.argv[1] == '0xa3l':
+      header = 0xa3
+      email = sys.argv[2].encode('utf-8')
+      password = sys.argv[3].encode('utf-8')
+      client_packet = struct.pack('>h64s64s', header, email, password)
+   elif sys.argv[1] == 'fakepacket':
+      header = int(sys.argv[2],16)
+      client_packet = struct.pack('>h', header)
    elif sys.argv[1] == 'DDOS':
       processList = [multiprocessing.Process(target = DDOS_BRUTE) for count in range(int(sys.argv[2]))]
       for process in processList: process.start()

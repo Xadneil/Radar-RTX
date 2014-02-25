@@ -10,6 +10,7 @@ Platform : CentOS
 Encoding : utf-8
 Module 
    : random          - randomize authentication id  
+   : sys             - Exiting the processs
    : os              - random authentication id
    : signal          - Asynchronous server commands
    : multiprocessing - Login, Event, Map server generator
@@ -17,7 +18,6 @@ Module
    : sqlalchemy      - Object relational mapper (SQLite; MySQL)
    : threading       - GIL threading
    : struct          - Pack and unpack packets
-   : Crypto          - SHA-256 encryption
    : colorama        - Color text
 
 Packet

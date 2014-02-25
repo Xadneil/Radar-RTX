@@ -12,6 +12,7 @@ Standard
    : sys             - Shell environment
    : queue           - Synchronization process/thread
    : subprocess      - Execute Shell Commands
+   : time            - Block the process
 Module
    : signal          - Asynchronous server commands
    : multiprocessing - Login, Event, Map server generator

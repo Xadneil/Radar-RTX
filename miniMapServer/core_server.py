@@ -13,12 +13,14 @@ Changelog:
    [1002] - Initial login server.
    [1003] - Stable core and login release.
    [1004] - Major bug fixes and output formatting
+   [1005] - Fixed the corrupted pipe for login server, fixed decoding error for latin-1,
+            and clean up depreciated code.
 '''
-import time
 import os                     # OS Servicess
 import sys                    # Environment
 import queue                  # Queue empty exception
 import subprocess             # Execute shell commands
+import time                   # Block the process
 import signal                 # Asynchronous signals
 import multiprocessing        # Spawn login, event, and map server
 import threading              # Track server queues
@@ -30,8 +32,7 @@ import login_server
 # server version encoding
 ver_app   = 'miniMap'         # Application Name
 ver_proj  = 'Yggdrasil'       # Project Name
-ver_pver  = '1.2'             # Project Version
-ver_encd  = 'utf-8'           # Default Encoding
+ver_pver  = '1.3'             # Project Version
 
 # server configuration
 serv_login_port = 33600       # Dedicate login server port
@@ -105,10 +106,9 @@ def cmd_showlogint():
   global serv_login_table
   printsep(50)
   for login_user in serv_login_table.keys():
-    authdecode = serv_login_table[login_user][0].decode('latin-1')
     printfmv('Member', 10, colorama.Fore.GREEN + login_user + colorama.Fore.WHITE, 40 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
     printfmv('Access', 10, colorama.Fore.GREEN + str(serv_login_table[login_user][1]) + colorama.Fore.WHITE, 40 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
-    printfmv('AuthID', 10, colorama.Fore.GREEN + authdecode + colorama.Fore.WHITE, 40)
+    printfmv('AuthID', 10, colorama.Fore.GREEN + str(serv_login_table[login_user][0]) + colorama.Fore.WHITE, 40)
     printsep(50)
 
 def cmd_shutdown():
@@ -119,7 +119,7 @@ def cmd_shutdown():
     serv_login_commlink[1].close()
     serv_login_table.clear()
     os.kill(serv_login.pid,signal.SIGTERM)                                  # send login server SIGTERM
-  os._exit(0)
+  sys.exit(0)
 
 def cmd_loginrestart():
   'Start the login server with standard configuration.'
@@ -130,7 +130,7 @@ def cmd_loginrestart():
     serv_login_commlink[1].close()
     serv_login_table.clear()
     os.kill(serv_login.pid,signal.SIGTERM)                                  # send login server SIGTERM
-  time.sleep(3)                                                             # wait 1 seconds for core server to run thread and process
+  time.sleep(1)                                                             # wait 1 seconds for core server to run thread and process
 
   # Generate new login server
   serv_login_commlink = multiprocessing.Pipe()                              # Establish comlink between core and login
@@ -148,6 +148,7 @@ def cmd_loginrestart():
     args = (serv_login_commlink[0],),
     name = lserv_name + str(serv_login_port) + 'ComLink'
   )
+  serv_login_comlink_listener.daemon = True
   serv_login_comlink_listener.start()
 
   time.sleep(1)                               # wait 1 seconds for core server to run thread and process
@@ -172,15 +173,15 @@ cmd_menu_help = {
    '1. showmenu'     :  'list available commands',
    '2. showstatus'   :  'list server process status',
    '3. showlogint'   :  'show global login table',
-   '4. loginrestart' :  'restart login server process',
-   '6. shutdown'     :  'shutdown all servers'
+   '4. loginre'      :  'restart login server process',
+   '5. shutdown'     :  'shutdown all servers'
 }
 
 cmd_menu =  {
    'showmenu'       : cmd_showmenu,
    'showstatus'     : cmd_showstat,
    'showlogint'     : cmd_showlogint,
-   'loginrestart'     : cmd_loginrestart,
+   'loginre'        : cmd_loginrestart,
    'shutdown'       : cmd_shutdown
 }   
 
@@ -206,7 +207,6 @@ if __name__ == '__main__':
   printfm('appl', ver_app)
   printfm('proj', ver_proj)
   printfm('pver', ver_pver)
-  printfm('encd', ver_encd)
   printfm('defe', sys.getdefaultencoding())
   printfm('plat', sys.platform)
   printfm('core', str(multiprocessing.cpu_count()))
@@ -215,30 +215,27 @@ if __name__ == '__main__':
   # set utf-8 encoding for win32
   if sys.platform == 'win32':
      subprocess.call('chcp 65001', shell = True)                             # set console encoding to utf-8
-     subprocess.call('set PYTHONIOENCODING = %s' % ver_encd, shell = True)   # set python encoding to utf-8
      printfmv('info: setting console to utf-8', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
-     printfmv('info: setting python to utf-8', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+  subprocess.call('set PYTHONIOENCODING = %s' % 'utf-8', shell = True)   # set python encoding to utf-8
+  printfmv('info: setting python to utf-8', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
 
   # set asynchronous signals
   signal.signal(signal.SIGINT, ctrlc_exit)
   signal.signal(signal.SIGTERM, ctrlc_exit)
-  #signal.signal(signal.SIGALRM, track_serv)
-  #signal.setitimer(signal.ITIMER_REAL, 5, 5)
   printfmv('info: registering SIGINT', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
   printfmv('info: registering SIGTERM', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
-  #printfm('info: registering SIGALRM', str(signal.SIGALRM) + '/' + colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE)
 
   # setup shared process objects
   serv_login_table = multiprocessing.Manager().dict()
   printfmv('info: shared proxy login table', 30, colorama.Fore.GREEN + 'OK' + colorama.Fore.WHITE, 20 + len(colorama.Fore.GREEN+colorama.Fore.WHITE))
+
   # start login server automatically
   printsep(50)
-  cmd_menu['loginrestart']()
+  cmd_menu['loginre']()
 
   # display initial command list
   printsep(50)
   cmd_menu['showmenu']()
-  printsep(50)
 
   # core server commands
   while True:
