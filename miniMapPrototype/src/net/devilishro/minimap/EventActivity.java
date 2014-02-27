@@ -54,22 +54,22 @@ public class EventActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case 0:
+			case 0: //replay
 				//intent
 				break;
-			case 1:
+			case 1: //friendforcer
 				//intent
 				break;
-			case 2:
+			case 2://logout
 				//intent
 				break;
-			case 3:
+			case 3://event admin
 				//intent
 				break;
-			case 4:
+			case 4://event notify
 				//intent
 				break;
-			case 5:
+			case 5://player list
 				//intent
 				break;
 		}
