@@ -159,19 +159,35 @@ login_packet = {
 # login server client thread
 def login_packet_handler(user_sock, user_addr):
    'Primary login server packet handler thread by login server process.'
-   # Retrieve the packet header
-   client_packet_header = user_sock.recv(2)
-   packet_header = struct.unpack('>h', client_packet_header)[0]
-   
-   # Check if packet exist in packet table
-   if packet_header in login_packet.keys():
-      client_packet_content = user_sock.recv(1024)
-      server_packet = login_packet[packet_header](client_packet_content)
-   else:
-      server_packet = b'\x00'
 
-   # Send back a message to the client and close the socket
-   user_sock.send(server_packet)
+   # display connected user's address
+   with lserv_stdout_lock: lserv_stdout.send('{} connection established.'.format(user_addr))
+
+   # handshake with the client
+   while True:
+      try:     # remove user from global login table when connection disconnects
+         server_packet = b'\x00'
+         try:  # retrieve and identify packet header
+            client_packet_header = user_sock.recv(2)                       # block for client packet header
+            if len(client_packet_header) <= 0: break                       # user disconnected
+            packet_header = struct.unpack('>h', client_packet_header)[0]   # retrieve packet header as short
+         except struct.error:                                              # skip the rest of the packet
+            with lserv_stdout_lock: lserv_stdout.send('{} is sending invalid packet headers: {}'.format(user_addr, str(client_packet_header)))
+            break
+         else:
+            if packet_header in login_packet.keys():
+               client_packet_content = user_sock.recv(1024)                         # block for client packet content
+               server_packet = login_packet[packet_header](client_packet_content)   # handle client packet and return server packet
+            else:
+               server_packet = bytearray(client_packet_header)                      # rebuilt the invalid packet header and content
+               server_packet.extend(user_sock.recv(1024))         
+               with lserv_stdout_lock: lserv_stdout.send('{} is sending corrupt data packet received: {}'.format(user_addr, str(server_packet)))
+         user_sock.send(server_packet)                                              # send server packet
+      except ConnectionAbortedError:
+         if debugmode: 
+            with lserv_stdout_lock: 
+               lserv_stdout.send('{}'.format(sys.exc_info()[1]))    
+         break
    user_sock.close()
 
 # login server process
