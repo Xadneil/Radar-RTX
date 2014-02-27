@@ -11,5 +11,15 @@
     <string name="title_activity_event">Events</string>
     <string name="select_event">Select Event</string>
     <string name="title_activity_event_join">EventJoinActivity</string>
-
+	
+	<string name="eventname">Event Name:</string>
+	<string name="teamonename">Team #1:</string>
+	<string name="teamtwoname">Team #2:</string>
+	<string name="eventmaxplayertext">Max Player:</string>
+	<string-array name = "eventmatchtypelst">
+	    <item>Clan War</item>
+	    <item>Team Death Match</item>
+	    <item>Free For All</item>
+	</string-array>
+	<string name="eventaddbuttext">Add Event</string>
 </resources>
