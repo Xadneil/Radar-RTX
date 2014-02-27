@@ -43,13 +43,36 @@ public class EventActivity extends Activity {
 		menu.add(0, 0, 0, "Replays");
 		menu.add(0, 1, 1, "FriendForcer");
 		menu.add(0, 2, 2, "Logout");
-		
+		if (State.isAdmin()) {
+			menu.add(0, 3, 3, "Event Admin");
+			menu.add(0, 4, 4, "Event Notify");
+			menu.add(0, 5, 5, "Player List");
+		}
 		return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
+		switch (item.getItemId()) {
+			case 0: //replay
+				//intent
+				break;
+			case 1: //friendforcer
+				//intent
+				break;
+			case 2://logout
+				//intent
+				break;
+			case 3://event admin
+				//intent
+				break;
+			case 4://event notify
+				//intent
+				break;
+			case 5://player list
+				//intent
+				break;
+		}
 		return true;
 	}
 
