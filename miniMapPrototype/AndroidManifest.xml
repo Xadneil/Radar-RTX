@@ -36,7 +36,12 @@
             android:name="net.devilishro.minimap.MapActivity"
             android:label="@string/title_activity_map" >
         </activity>
-        <activity android:name="EventAdd"></activity>
+        <activity android:name="net.devilishro.minimap.EventAdd" >
+        </activity>
+        <activity
+            android:name="net.devilishro.minimap.Note_acti"
+            android:label="@string/title_activity_note_acti" >
+        </activity>
     </application>
 
 </manifest>
