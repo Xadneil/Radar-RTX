@@ -15,7 +15,6 @@ Changelog:
    [1004] - Major bug fixes and output formatting
    [1005] - Fixed the corrupted pipe for login server, fixed decoding error for latin-1,
             and clean up depreciated code.
-   [1006] - Fixed connectivity issues with login server.
 '''
 import os                     # OS Servicess
 import sys                    # Environment
@@ -33,7 +32,7 @@ import login_server
 # server version encoding
 ver_app   = 'miniMap'         # Application Name
 ver_proj  = 'Yggdrasil'       # Project Name
-ver_pver  = '1.4'             # Project Version
+ver_pver  = '1.3'             # Project Version
 
 # server configuration
 serv_login_port = 33600       # Dedicate login server port
@@ -200,7 +199,7 @@ if __name__ == '__main__':
   line3 = intro_color_prefix+"   | '  \\  | | | ' \\  | | | '  \\  / _` | | '_ \\   "+intro_color_postfix
   line4 = intro_color_prefix+"   |_|_|_| |_| |_||_| |_| |_|_|_| \\__,_| | .__/   "+intro_color_postfix
   line5 = intro_color_prefix+"                                         |_|      "+intro_color_postfix
-  line6 = intro_color_prefix+"   Jim Ching / Daniel Flaws / David Richardson    "+intro_color_postfix
+  line6 = intro_color_prefix+"   Jim Ching / Danial Flaws / David Richardson    "+intro_color_postfix
   print(line1, line2, line3, line4, line5, line6, sep = '\n')
   print('%s%s%s' % (intro_color_prefix,'=' * 50,intro_color_postfix))
 

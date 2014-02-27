@@ -7,8 +7,8 @@ import struct
 import threading
 import multiprocessing
 
-#serv_host = '50.62.212.171'
-serv_host = 'localhost'
+serv_host = '50.62.212.171'
+#serv_host = 'localhost'
 serv_port = 33600
 
 
@@ -47,8 +47,7 @@ if __name__ == '__main__':
       client_packet = struct.pack('>h64s64s', header, email, password)
    elif sys.argv[1] == 'fakepacket':
       header = int(sys.argv[2],16)
-      dummy = 'This is a fake packet'.encode('utf-8')
-      client_packet = struct.pack('>h64s', header, dummy)
+      client_packet = struct.pack('>h', header)
    elif sys.argv[1] == 'DDOS':
       processList = [multiprocessing.Process(target = DDOS_BRUTE) for count in range(int(sys.argv[2]))]
       for process in processList: process.start()
