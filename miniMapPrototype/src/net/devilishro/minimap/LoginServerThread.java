@@ -34,6 +34,12 @@ public class LoginServerThread extends Thread {
 		while(true) {
 			try {
 				bytes = inputStream.read(buffer);
+				if(bytes == -1) {
+					inputStream.close();
+					outputStream.close();
+					Minimap.login_socket = null;
+					break;
+				}
 				Minimap.UIupdate.obtainMessage(0, bytes, -1, buffer).sendToTarget();
 			} catch(IOException e){
 				Log.d("SocketChat",e.getLocalizedMessage());
@@ -66,7 +72,6 @@ public class LoginServerThread extends Thread {
 				packet[i+2] = email_padded[i];
 			for(int i = 0; i < 64; i++)
 				packet[i+2+64] = password_padded[i];
-			Log.d("Packet",new String(packet));
 
 			outputStream.write(packet);
 		} catch(IOException e) {

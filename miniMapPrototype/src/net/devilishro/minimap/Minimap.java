@@ -14,13 +14,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Minimap extends Activity {
 	EditText login_email;		// login email
 	EditText login_pass;		// login password
 	static TextView auth_id;	// authid
 	InetAddress serverAddress;	// login server address
-	Socket login_socket;		// login server connection socket
+	static Socket login_socket;		// login server connection socket
 	LoginServerThread login_thread;	// login server socket handler
 	
 	/**
@@ -56,7 +57,12 @@ public class Minimap extends Activity {
 		header[0] = (byte) (packet_header >> 8);
 		byte[] email_encode = packet_email.getBytes();
 		byte[] pass_encode = packet_password.getBytes();
-		new WriteToServerTask().execute(header,email_encode,pass_encode);
+		if(login_socket != null) {
+			new WriteToServerTask().execute(header,email_encode,pass_encode);
+		} else {
+			Toast.makeText(this, "Attempting to connect to login server.", Toast.LENGTH_LONG).show();
+			new CreateCommThreadTask().execute();
+		}
 	}
 	
 
@@ -80,17 +86,20 @@ public class Minimap extends Activity {
 	 * Creates a connection with login server
 	 * @author trickyloki3
 	 */
-	private class CreateCommThreadTask extends AsyncTask<Void, Integer, Void> {
+	private class CreateCommThreadTask extends AsyncTask<Void, Integer, Socket> {
 		@Override
-		protected Void doInBackground(Void... params) {
+		protected Socket doInBackground(Void... params) {
 			try {
 				// connect to the login server: 50.62.212.171:3360
 				serverAddress = InetAddress.getByName("50.62.212.171");
 				login_socket = new Socket(serverAddress, 33600);
 				
 				// create client thread to handle server IO
-				login_thread = new LoginServerThread(login_socket);
-				login_thread.start();
+				if(login_socket != null)
+				{
+					login_thread = new LoginServerThread(login_socket);
+					login_thread.start();
+				}
 			} catch (UnknownHostException e) {
 				// Failed to get host name
 				Log.d("sockets",e.getLocalizedMessage());
@@ -98,7 +107,14 @@ public class Minimap extends Activity {
 				// Failed to connect to login server 
 				Log.d("Sockets",e.getLocalizedMessage());
 			}
-			return null;
+			return login_socket;
+		}
+		
+		protected void onPostExecute(Socket login_thread) {
+			if(login_thread == null)
+				Toast.makeText(getBaseContext(), "Unable to connect to login server, please try again later.", Toast.LENGTH_LONG).show();
+			else
+				Toast.makeText(getBaseContext(), "Connected to login server, please enter your email and password.", Toast.LENGTH_LONG).show();
 		}
 	}
 	
@@ -135,7 +151,8 @@ public class Minimap extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		new CloseSocketTask().execute();
+		if(login_socket != null)
+			new CloseSocketTask().execute();
 	}
 	
 	/**

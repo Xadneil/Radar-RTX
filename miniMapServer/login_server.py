@@ -169,7 +169,10 @@ def login_packet_handler(user_sock, user_addr):
          server_packet = b'\x00'
          try:  # retrieve and identify packet header
             client_packet_header = user_sock.recv(2)                       # block for client packet header
-            if len(client_packet_header) <= 0: break                       # user disconnected
+            if len(client_packet_header) <= 0: 
+               with lserv_stdout_lock:
+                  lserv_stdout.send('{} connection closed'.format(user_addr))
+               break                       # user disconnected
             packet_header = struct.unpack('>h', client_packet_header)[0]   # retrieve packet header as short
          except struct.error:                                              # skip the rest of the packet
             with lserv_stdout_lock: lserv_stdout.send('{} is sending invalid packet headers: {}'.format(user_addr, str(client_packet_header)))
