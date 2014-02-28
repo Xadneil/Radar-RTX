@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 public class Note_acti extends Activity {
 
-	ArrayList<String> listy;
+	ArrayList<String> listy, listy_one;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +23,9 @@ public class Note_acti extends Activity {
 		listy = new ArrayList<String>();
 		setList();
 		ListView one = (ListView) this.findViewById(R.id.listView1);
+		//ListView two = (ListView) this.findViewById(R.id.expandableListView1);
 		one.setAdapter(new CoolAdapter(this, listy));
+		//two.setAdapter(new BitchAdapter(this, listy_one));
 	}
 
 	@Override
@@ -39,6 +41,8 @@ public class Note_acti extends Activity {
 		listy.add("Player 2");
 		listy.add("Player 4");
 		listy.add("Player 5");
+		//listy_one.add("Urgent");
+		//listy
 	}
 
 	private static class CoolAdapter extends ArrayAdapter<String> {
