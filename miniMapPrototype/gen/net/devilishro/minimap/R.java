@@ -74,10 +74,11 @@ public final class R {
         public static final int activity_note_acti=0x7f030004;
         public static final int activity_notification=0x7f030005;
         public static final int activity_player_state=0x7f030006;
-        public static final int eventadd=0x7f030007;
-        public static final int map=0x7f030008;
-        public static final int state=0x7f030009;
-        public static final int view_event=0x7f03000a;
+        public static final int activity_replay=0x7f030007;
+        public static final int eventadd=0x7f030008;
+        public static final int map=0x7f030009;
+        public static final int state=0x7f03000a;
+        public static final int view_event=0x7f03000b;
     }
     public static final class menu {
         public static final int event_join=0x7f080000;
@@ -86,6 +87,7 @@ public final class R {
         public static final int minimap=0x7f080003;
         public static final int note_acti=0x7f080004;
         public static final int player_state=0x7f080005;
+        public static final int replay=0x7f080006;
     }
     public static final class string {
         public static final int action_settings=0x7f050001;
@@ -106,6 +108,7 @@ public final class R {
         public static final int title_activity_map=0x7f05000a;
         public static final int title_activity_note_acti=0x7f050010;
         public static final int title_activity_player_state=0x7f050011;
+        public static final int title_activity_replay=0x7f050012;
     }
     public static final class style {
         /** 

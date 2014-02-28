@@ -46,6 +46,10 @@
             android:name="net.devilishro.minimap.Player_state"
             android:label="@string/title_activity_player_state" >
         </activity>
+        <activity
+            android:name="net.devilishro.minimap.Replay"
+            android:label="@string/title_activity_replay" >
+        </activity>
     </application>
 
 </manifest>
