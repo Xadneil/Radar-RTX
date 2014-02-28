@@ -29,19 +29,22 @@ public final class R {
     public static final class id {
         public static final int LinearLayout1=0x7f090002;
         public static final int RLayout=0x7f090008;
-        public static final int action_settings=0x7f090020;
+        public static final int action_settings=0x7f090025;
         public static final int authid=0x7f09000f;
         public static final int check=0x7f090013;
+        public static final int editText1=0x7f090015;
+        public static final int editText2=0x7f090016;
+        public static final int editText3=0x7f090014;
         public static final int eventListView=0x7f090000;
         public static final int event_join_name=0x7f090001;
-        public static final int event_name=0x7f09001e;
-        public static final int event_provider=0x7f09001f;
-        public static final int eventaddbut=0x7f09001d;
-        public static final int eventedit=0x7f090015;
-        public static final int eventmatchtype=0x7f09001c;
-        public static final int eventmaxplayer=0x7f09001a;
-        public static final int eventmaxplayeredit=0x7f09001b;
-        public static final int eventname=0x7f090014;
+        public static final int event_name=0x7f090023;
+        public static final int event_provider=0x7f090024;
+        public static final int eventaddbut=0x7f090022;
+        public static final int eventedit=0x7f09001a;
+        public static final int eventmatchtype=0x7f090021;
+        public static final int eventmaxplayer=0x7f09001f;
+        public static final int eventmaxplayeredit=0x7f090020;
+        public static final int eventname=0x7f090019;
         public static final int expandableListView1=0x7f090011;
         public static final int group_1_button=0x7f090003;
         public static final int group_2_button=0x7f090004;
@@ -51,11 +54,13 @@ public final class R {
         public static final int map=0x7f090007;
         public static final int registerbut=0x7f09000d;
         public static final int send=0x7f090012;
-        public static final int teamoneedit=0x7f090017;
-        public static final int teamonename=0x7f090016;
-        public static final int teamtwoedit=0x7f090019;
-        public static final int teamtwoname=0x7f090018;
+        public static final int teamoneedit=0x7f09001c;
+        public static final int teamonename=0x7f09001b;
+        public static final int teamtwoedit=0x7f09001e;
+        public static final int teamtwoname=0x7f09001d;
         public static final int textView1=0x7f090010;
+        public static final int textView2=0x7f090017;
+        public static final int textView3=0x7f090018;
         public static final int textuseremail=0x7f090009;
         public static final int textuserpass=0x7f09000b;
         public static final int useremail=0x7f09000a;
@@ -68,8 +73,9 @@ public final class R {
         public static final int activity_minimap=0x7f030003;
         public static final int activity_note_acti=0x7f030004;
         public static final int activity_notification=0x7f030005;
-        public static final int eventadd=0x7f030006;
-        public static final int view_event=0x7f030007;
+        public static final int activity_player_state=0x7f030006;
+        public static final int eventadd=0x7f030007;
+        public static final int view_event=0x7f030008;
     }
     public static final class menu {
         public static final int event_join=0x7f080000;
@@ -77,6 +83,7 @@ public final class R {
         public static final int map=0x7f080002;
         public static final int minimap=0x7f080003;
         public static final int note_acti=0x7f080004;
+        public static final int player_state=0x7f080005;
     }
     public static final class string {
         public static final int action_settings=0x7f050001;
@@ -96,6 +103,7 @@ public final class R {
         public static final int title_activity_event_join=0x7f050009;
         public static final int title_activity_map=0x7f05000a;
         public static final int title_activity_note_acti=0x7f050010;
+        public static final int title_activity_player_state=0x7f050011;
     }
     public static final class style {
         /** 

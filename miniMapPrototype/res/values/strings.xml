@@ -25,5 +25,6 @@
 
     <string name="eventaddbuttext">Add Event</string>
     <string name="title_activity_note_acti">Note_acti</string>
+    <string name="title_activity_player_state">Player_state</string>
 
 </resources>
