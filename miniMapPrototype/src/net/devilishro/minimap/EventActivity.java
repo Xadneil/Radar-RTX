@@ -14,8 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
-
 public class EventActivity extends Activity {
 	private OnItemClickListener clickListener = new OnItemClickListener() {
 		@Override
@@ -44,7 +42,7 @@ public class EventActivity extends Activity {
 		menu.add(0, 1, 1, "FriendForcer");
 		menu.add(0, 2, 2, "Logout");
 		if (State.isAdmin()) {
-			menu.add(0, 3, 3, "Event Admin");
+			menu.add(0, 3, 3, "Event Add");
 			menu.add(0, 4, 4, "Event Notify");
 			menu.add(0, 5, 5, "Player List");
 		}
@@ -63,8 +61,9 @@ public class EventActivity extends Activity {
 			case 2://logout
 				//intent
 				break;
-			case 3://event admin
-				//intent
+			case 3://event add
+				Intent i = new Intent(this, EventAdd.class);
+				startActivity(i);
 				break;
 			case 4://event notify
 				//intent
@@ -115,14 +114,10 @@ public class EventActivity extends Activity {
 
 	public static class Event {
 		public String title, provider;
-		public LatLng position;
-		public float zoom;
 
-		public Event(String title, String provider, LatLng position, float zoom) {
+		public Event(String title, String provider) {
 			this.title = title;
 			this.provider = provider;
-			this.position = position;
-			this.zoom = zoom;
 		}
 	}
 
