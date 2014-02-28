@@ -1,35 +1,64 @@
 package net.devilishro.minimap;
 
-import android.app.Activity;
+import java.util.ArrayList;
+
 import android.os.Bundle;
+import android.app.Activity;
+import android.content.Context;
 import android.view.Menu;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.app.ListActivity;
+import android.widget.TextView;
 
-public class Replay extends ListActivity {
+public class Replay extends Activity {
+
+	ArrayList<String> listy;
 	
-	String[] match = {
-		"Match 1",
-		"Match 2",
-		"Match 3",
-		"Match 4",
-		"Match 5"
-	};
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_replay);
-		
-		setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, match));
+		listy = new ArrayList<String>();
+		setList();
+		ListView one = (ListView) this.findViewById(R.id.listView1);
+		one.setAdapter(new CoolAdapter(this, listy));
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.replay, menu);
-		return true;
+	private void setList() {
+		listy.add("Match 1");
+		listy.add("Match 2");
+		listy.add("Match 3");
 	}
+	
+	private static class CoolAdapter extends ArrayAdapter<String> {
+		Context context;
+		ArrayList<String> b;
 
+		public CoolAdapter(Replay player_state, ArrayList liste) {
+			super(player_state, R.id.listView1, liste);
+			b = liste;
+			context = player_state;
+		}
+
+		@Override
+		public View getView(int pos, View convert, ViewGroup parent) {
+			String temp;
+			if (convert == null)
+				convert = View.inflate(context, R.layout.state,
+						null);
+			try {
+				temp = b.get(pos);
+			} catch (Exception e) {
+				temp = null;
+			}
+
+			if (temp != null)
+				((TextView) convert.findViewById(R.id.textView1)).setText(temp);
+			return convert;
+		}
+
+	}
+	
 }
