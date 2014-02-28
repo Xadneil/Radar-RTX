@@ -178,4 +178,8 @@ public class Minimap extends Activity {
 			startEventActivity();
 		}
 	};
+
+	public void showToast() {
+		Toast.makeText(this, "Incorrect Login", Toast.LENGTH_LONG).show();
+	}
 }

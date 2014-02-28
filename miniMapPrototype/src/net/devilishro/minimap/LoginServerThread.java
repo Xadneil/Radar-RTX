@@ -44,7 +44,12 @@ public class LoginServerThread extends Thread {
 					break;
 				}
 				Minimap.auth = new String(buffer);
-				if (bytes == 1 && buffer[0] == 0) {
+				byte b1 = buffer[2];
+				int b2 = buffer[3];
+				b2 = b2 >>> 8;
+				int status = b1 + b2;
+				Log.d("temp", "" + status);
+				if (status != 200 || status != 201) {
 					Toast.makeText(map, "Incorrect Login", Toast.LENGTH_LONG).show();
 				} else {
 					map.startEventActivity();
