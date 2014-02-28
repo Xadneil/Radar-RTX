@@ -50,7 +50,7 @@ public class LoginServerThread extends Thread {
 				int status = b1 + b2;
 				Log.d("temp", "" + status);
 				if (status != 200 || status != 201) {
-					Toast.makeText(map, "Incorrect Login", Toast.LENGTH_LONG).show();
+					map.showToast();
 				} else {
 					map.startEventActivity();
 					cancel();
