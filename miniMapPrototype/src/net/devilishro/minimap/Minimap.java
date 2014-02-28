@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,16 +14,15 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class Minimap extends Activity {
 	EditText login_email;		// login email
 	EditText login_pass;		// login password
-	static TextView auth_id;	// authid
 	InetAddress serverAddress;	// login server address
 	static Socket login_socket;		// login server connection socket
 	LoginServerThread login_thread;	// login server socket handler
+	static String auth;
 	
 	/**
 	 * Send packet 0xa1; authentication
@@ -78,7 +78,13 @@ public class Minimap extends Activity {
 		
 		login_email = (EditText) findViewById(R.id.useremail);
 		login_pass = (EditText) findViewById(R.id.userpass);
-		auth_id = (TextView) findViewById(R.id.authid);
+	}
+
+	public void startEventActivity() {
+		State.setEventNumber(1);
+		State.getEvents()[0] = new EventActivity.Event("Temp Event", "Best Paintball");
+		Intent i = new Intent(this, EventActivity.class);
+		startActivity(i);
 	}
 	
 	/**
@@ -97,7 +103,7 @@ public class Minimap extends Activity {
 				// create client thread to handle server IO
 				if(login_socket != null)
 				{
-					login_thread = new LoginServerThread(login_socket);
+					login_thread = new LoginServerThread(Minimap.this, login_socket);
 					login_thread.start();
 				}
 			} catch (UnknownHostException e) {
@@ -160,7 +166,7 @@ public class Minimap extends Activity {
 	 * Update txtMessage's EditText view
 	 * @author trickyloki3
 	 */
-	static Handler UIupdate = new Handler() {
+	public Handler UIupdate = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			int numOfBytesReceived = msg.arg1;
@@ -168,8 +174,7 @@ public class Minimap extends Activity {
 			
 			String strReceived = new String(buffer);
 			strReceived = strReceived.substring(0, numOfBytesReceived);
-			
-			auth_id.setText(strReceived);
+			startEventActivity();
 		}
 	};
 }
