@@ -32,10 +32,6 @@
             android:name="net.devilishro.minimap.EventJoinActivity"
             android:label="@string/title_activity_event_join" >
         </activity>
-        <activity
-            android:name="net.devilishro.minimap.MapActivity"
-            android:label="@string/title_activity_map" >
-        </activity>
         <activity android:name="net.devilishro.minimap.EventAdd" >
         </activity>
         <activity
@@ -50,6 +46,7 @@
             android:name="net.devilishro.minimap.Replay"
             android:label="@string/title_activity_replay" >
         </activity>
+        <activity android:name="MapActivity"></activity>
     </application>
 
 </manifest>

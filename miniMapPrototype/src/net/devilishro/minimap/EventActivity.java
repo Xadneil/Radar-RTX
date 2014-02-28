@@ -53,11 +53,17 @@ public class EventActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case 0: //replay
-				//intent
+			{
+				Intent i = new Intent(this, Replay.class);
+				startActivity(i);
 				break;
+			}
 			case 1: //friendforcer
-				//intent
+			{
+				Intent i = new Intent(this, EventJoinActivity.class);
+				startActivity(i);
 				break;
+			}
 			case 2://logout
 				//intent
 				break;

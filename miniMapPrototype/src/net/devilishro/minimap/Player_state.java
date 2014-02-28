@@ -27,11 +27,11 @@ public class Player_state extends Activity {
 	}
 
 	private void setList() {
-		listy.add("Match 1");
-		listy.add("Match 2");
-		listy.add("Match 2");
-		listy.add("Match 4");
-		listy.add("Match 5");
+		listy.add("Player 1 Status");
+		listy.add("Player 2 Status");
+		listy.add("Player 2 Status");
+		listy.add("Player 4 Status");
+		listy.add("Player 5 Status");
 	}
 	
 	private static class CoolAdapter extends ArrayAdapter<String> {
