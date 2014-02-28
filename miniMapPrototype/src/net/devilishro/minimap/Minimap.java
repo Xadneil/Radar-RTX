@@ -83,7 +83,6 @@ public class Minimap extends Activity {
 	public void startEventActivity() {
 		State.setEventNumber(1);
 		State.getEvents()[0] = new EventActivity.Event("Temp Event", "Best Paintball");
-		State.setAdmin(true);
 		Intent i = new Intent(this, EventActivity.class);
 		startActivity(i);
 	}

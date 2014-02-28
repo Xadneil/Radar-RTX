@@ -48,37 +48,29 @@ public class EventActivity extends Activity {
 		}
 		return true;
 	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case 0: // replay
-			// intent
-			break;
-		case 1: // friendforcer
-			// intent
-			break;
-		case 2:// logout
-				// intent
-			break;
-		case 3:// event add
-		{
-			Intent i = new Intent(this, EventAdd.class);
-			startActivity(i);
-			break;
-		}
-		case 4:// event notify
-		{
-			Intent i = new Intent(this, Note_acti.class);
-			startActivity(i);
-			break;
-		}
-		case 5:// player list
-		{
-			Intent i = new Intent(this, Player_state.class);
-			startActivity(i);
-			break;
-		}
+			case 0: //replay
+				//intent
+				break;
+			case 1: //friendforcer
+				//intent
+				break;
+			case 2://logout
+				//intent
+				break;
+			case 3://event add
+				Intent i = new Intent(this, EventAdd.class);
+				startActivity(i);
+				break;
+			case 4://event notify
+				//intent
+				break;
+			case 5://player list
+				//intent
+				break;
 		}
 		return true;
 	}
