@@ -62,15 +62,23 @@ public class EventActivity extends Activity {
 				//intent
 				break;
 			case 3://event add
+			{
 				Intent i = new Intent(this, EventAdd.class);
 				startActivity(i);
 				break;
+			}
 			case 4://event notify
-				//intent
+			{
+				Intent i = new Intent(this, Note_acti.class);
+				startActivity(i);
 				break;
+			}
 			case 5://player list
-				//intent
+			{
+				Intent i = new Intent(this, Player_state.class);
+				startActivity(i);
 				break;
+			}
 		}
 		return true;
 	}
