@@ -170,16 +170,9 @@ public class Minimap extends Activity {
 	public Handler UIupdate = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			int numOfBytesReceived = msg.arg1;
-			byte[] buffer = (byte[]) msg.obj;
-			
-			String strReceived = new String(buffer);
-			strReceived = strReceived.substring(0, numOfBytesReceived);
-			startEventActivity();
+			if (msg.what == 2) {
+				Toast.makeText(Minimap.this, "Login Incorrect", Toast.LENGTH_LONG).show();
+			}
 		}
 	};
-
-	public void showToast() {
-		Toast.makeText(this, "Incorrect Login", Toast.LENGTH_LONG).show();
-	}
 }

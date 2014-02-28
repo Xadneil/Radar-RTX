@@ -44,13 +44,23 @@ public class LoginServerThread extends Thread {
 					break;
 				}
 				Minimap.auth = new String(buffer);
-				byte b1 = buffer[2];
-				int b2 = buffer[3];
-				b2 = b2 >>> 8;
+				String s = "";
+				for (int i = 0; i < bytes; i++) {
+					s += String.format("%02X ", buffer[i]);
+				}
+				Log.d("tmp", s);
+				int b1 = buffer[2] & 0xff; //magic
+				int b2 = buffer[3] & 0xff; //magic
+				//if (b2 < 0) {
+				//	b2 += 256;
+				//}
+				b1 = b1 << 8;
+				Log.d("b1", "" + b1);
+				Log.d("b2", "" + b2);
 				int status = b1 + b2;
 				Log.d("temp", "" + status);
-				if (status != 200 || status != 201) {
-					map.showToast();
+				if (status != 200 && status != 201) {
+					map.UIupdate.obtainMessage(2).sendToTarget();
 				} else {
 					map.startEventActivity();
 					cancel();
