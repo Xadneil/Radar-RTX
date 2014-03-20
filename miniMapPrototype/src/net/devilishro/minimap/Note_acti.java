@@ -49,7 +49,7 @@ public class Note_acti extends Activity {
 		Context context;
 		ArrayList<String> b;
 
-		public CoolAdapter(Note_acti a, ArrayList liste) {
+		public CoolAdapter(Note_acti a, ArrayList<String> liste) {
 			super(a, R.id.listView1, liste);
 			b = liste;
 			context = a;

@@ -38,7 +38,7 @@ public class Player_state extends Activity {
 		Context context;
 		ArrayList<String> b;
 
-		public CoolAdapter(Player_state player_state, ArrayList liste) {
+		public CoolAdapter(Player_state player_state, ArrayList<String> liste) {
 			super(player_state, R.id.listView1, liste);
 			b = liste;
 			context = player_state;

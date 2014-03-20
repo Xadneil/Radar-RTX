@@ -2,10 +2,9 @@ package net.devilishro.minimap;
 
 import java.util.ArrayList;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
-import android.view.Menu;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -36,7 +35,7 @@ public class Replay extends Activity {
 		Context context;
 		ArrayList<String> b;
 
-		public CoolAdapter(Replay player_state, ArrayList liste) {
+		public CoolAdapter(Replay player_state, ArrayList<String> liste) {
 			super(player_state, R.id.listView1, liste);
 			b = liste;
 			context = player_state;

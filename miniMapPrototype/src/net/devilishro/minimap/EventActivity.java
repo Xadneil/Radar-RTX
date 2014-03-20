@@ -14,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class EventActivity extends Activity {
 	private OnItemClickListener clickListener = new OnItemClickListener() {
 		@Override
@@ -128,10 +130,14 @@ public class EventActivity extends Activity {
 
 	public static class Event {
 		public String title, provider;
+		public LatLng position;
+		public float zoom;
 
-		public Event(String title, String provider) {
+		public Event(String title, String provider, LatLng position, float zoom) {
 			this.title = title;
 			this.provider = provider;
+			this.position = position;
+			this.zoom = zoom;
 		}
 	}
 

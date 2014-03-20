@@ -2,7 +2,18 @@ package net.devilishro.minimap;
 
 import net.devilishro.minimap.EventActivity.Event;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
 public class State {
+	private static final int MAX_PLAYERS = 8;
+
+	private static String names[] = new String[MAX_PLAYERS];
+
+    private static LatLng positions[] = new LatLng[MAX_PLAYERS];
+    private static Marker markers[] = new Marker[MAX_PLAYERS];
+    private static final Object positionsLock = new Object();
+    
     private static Event events[];
     private static int currentEvent = -1;
 
@@ -20,7 +31,11 @@ public class State {
 
     public static boolean networkDebug = true;
 
-    public static boolean isAdmin() {
+    public static String[] getNames() {
+		return names;
+	}
+
+	public static boolean isAdmin() {
         return admin;
     }
 
@@ -46,5 +61,17 @@ public class State {
         } else {
             return null;
         }
+    }
+
+    public static LatLng[] getPositions() {
+        return positions;
+    }
+
+    public static Object getPositionsLock() {
+        return positionsLock;
+    }
+
+    public static Marker[] getMarkers() {
+        return markers;
     }
 }

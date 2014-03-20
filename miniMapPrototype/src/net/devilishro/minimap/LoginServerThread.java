@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import android.util.Log;
-import android.widget.Toast;
 
 public class LoginServerThread extends Thread {
 	private final Socket socket;
