@@ -39,25 +39,23 @@ public class MapActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		// fullscreen activity
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		setContentView(R.layout.activity_map);
+		
 		if (!setUpMapIfNeeded()) {
 			finish();
 			return;
 		}
 		initialize();
 
-		// fullscreen activity
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		setContentView(R.layout.activity_map);
-
 		Event e = State.getCurrentEvent();
 		if (e == null) {
 			finish();
 			return;
 		}
-		Log.d("Map Debug", (map != null) + " " + (e != null) + " "
-				+ (e.position != null));
 		map.moveCamera(CameraUpdateFactory.newLatLng(e.position));
 		map.moveCamera(CameraUpdateFactory.zoomTo(e.zoom));
 
@@ -112,8 +110,9 @@ public class MapActivity extends Activity {
 	}
 
 	public LatLng getLocation() {
-		Location loc = location.getLastLocation();
-		return new LatLng(loc.getLatitude(), loc.getLongitude());
+		//TODO location stuff is broken due to Google
+		//Location loc = location.getLastLocation();
+		return null; //new LatLng(loc.getLatitude(), loc.getLongitude());
 	}
 
 	@Override
