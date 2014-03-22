@@ -1,5 +1,11 @@
 package net.devilishro.minimap.network;
 
+/**
+ * Dummy packet class
+ * 
+ * @author Daniel
+ * 
+ */
 public class Packet {
 
 	public Packet() {
@@ -11,7 +17,11 @@ public class Packet {
 	}
 
 	public void addPaddedString(String s, int pad) {
-		
+
+	}
+
+	public void addInt(int number) {
+
 	}
 
 	public int getInt() {

@@ -23,13 +23,13 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 
 public class Minimap extends Activity {
-	EditText login_email; // login email
-	EditText login_pass; // login password
-	InetAddress serverAddress; // login server address
-	int serverPort = 33600;
-	Network loginServer;
-	static Socket login_socket; // login server connection socket
-	LoginServerThread login_thread; // login server socket handler
+	private EditText login_email; // login email
+	private EditText login_pass; // login password
+	
+	private final int serverPort = 33600;
+	private Network loginServer;
+	private static Socket login_socket; // login server connection socket
+	private LoginServerThread login_thread; // login server socket handler
 
 	/**
 	 * Send packet 0xa3; registration
@@ -105,17 +105,11 @@ public class Minimap extends Activity {
 
 		login_email = (EditText) findViewById(R.id.useremail);
 		login_pass = (EditText) findViewById(R.id.userpass);
-
-		try {
-			serverAddress = InetAddress.getByName("50.62.212.171");
-		} catch (UnknownHostException e) {
-			Log.wtf("", "Error Resolving Server IP", e);
-		}
 	}
 
 	public void startEventActivity() {
 		State.setEventNumber(1);
-		State.getEvents()[0] = new EventActivity.Event("Test Event",
+		State.getEvents()[0] = new EventActivity.Event(0, "Test Event",
 				"Provider", new LatLng(28.059891, -82.416183), 17.0f);
 		State.setAdmin(true);
 		Intent i = new Intent(this, EventActivity.class);
@@ -133,8 +127,7 @@ public class Minimap extends Activity {
 		protected Socket doInBackground(Void... params) {
 			try {
 				// connect to the login server: 50.62.212.171:33600
-				serverAddress = InetAddress.getByName("50.62.212.171");
-				login_socket = new Socket(serverAddress, 33600);
+				login_socket = new Socket(State.getServerAddress(), 33600);
 
 				// create client thread to handle server IO
 				if (login_socket != null) {
@@ -176,7 +169,7 @@ public class Minimap extends Activity {
 		super.onResume();
 		// TODO to be phased out
 		// new CreateCommThreadTask().execute();
-		loginServer = new Network(Type.LOGIN, serverAddress, serverPort, this);
+		loginServer = new Network(Type.LOGIN, State.getServerAddress(), serverPort, this);
 		loginServer.start();
 	}
 
@@ -222,8 +215,17 @@ public class Minimap extends Activity {
 	public Handler UIupdate = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			if (msg.what == 2) {
+			if (msg.what == 0) {
+				Toast.makeText(Minimap.this, "Registration Failed",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 1) {
+				Toast.makeText(Minimap.this, "Registration Successful",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 2) {
 				Toast.makeText(Minimap.this, "Login Incorrect",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 3) {
+				Toast.makeText(Minimap.this, "Already Logged In",
 						Toast.LENGTH_LONG).show();
 			}
 		}

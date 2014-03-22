@@ -39,7 +39,7 @@ public class LoginServerThread extends Thread {
 				if (bytes == -1) {
 					inputStream.close();
 					outputStream.close();
-					Minimap.login_socket = null;
+					//Minimap.login_socket = null;
 					break;
 				}
 				//Minimap.auth = new String(buffer);

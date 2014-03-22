@@ -1,6 +1,11 @@
 package net.devilishro.minimap;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import net.devilishro.minimap.EventActivity.Event;
+
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -21,8 +26,26 @@ public class State {
     private static boolean admin = false;
 
     private static String authID;
+    
+    private static InetAddress serverAddress;
+    
+    public static boolean networkDebug = true;
 
-    public static boolean isLoginOK() {
+    private static String TAG = "State";
+
+    static {
+    	try {
+			serverAddress = InetAddress.getByName("50.62.212.171");
+		} catch (UnknownHostException e) {
+			Log.e(TAG, "Server IP Resolution Error", e);
+		}
+    }
+
+    public static InetAddress getServerAddress() {
+		return serverAddress;
+	}
+
+	public static boolean isLoginOK() {
 		return loginOK;
 	}
 
@@ -38,7 +61,7 @@ public class State {
         State.authID = authID;
     }
 
-    public static boolean networkDebug = true;
+    
 
     public static String[] getNames() {
 		return names;

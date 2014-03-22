@@ -2,7 +2,7 @@ package net.devilishro.minimap.network;
 
 public enum SendOpcode implements Opcode {
 
-    LOGIN(0xa1), REGISTER(0xa3), MAP_STATE(0xb1);
+    LOGIN(0xa1), REGISTER(0xa3), MAP_STATE(0xb1), SELECT_EVENT(0xe3);
 
     SendOpcode(int value) {
         this.value = value;
