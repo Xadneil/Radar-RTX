@@ -80,8 +80,7 @@ Packets
       {  // repeating depending on above
          integer(4)  : event id
          string(32)  : event name
-         string(32)  : team one name
-         string(32)  : team two name
+         string(32)  : event provider
       }
    }
 
