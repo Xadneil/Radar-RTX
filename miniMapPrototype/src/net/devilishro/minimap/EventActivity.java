@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +34,7 @@ public class EventActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event);
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
+		Log.d("EventActivity", "State.getEvents(): " + (State.getEvents() == null ? "yes" : "no"));
 		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
 	}

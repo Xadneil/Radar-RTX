@@ -24,7 +24,11 @@ public class LocationProvider extends Thread {
         }
     }
 
-    @Override
+    public boolean isRunning() {
+		return isRunning;
+	}
+
+	@Override
     public void start() {
         isRunning = true;
         super.start();

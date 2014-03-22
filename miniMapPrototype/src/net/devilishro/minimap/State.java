@@ -17,11 +17,20 @@ public class State {
     private static Event events[];
     private static int currentEvent = -1;
 
+    private static boolean loginOK = false;
     private static boolean admin = false;
 
     private static String authID;
 
-    public static String getAuthID() {
+    public static boolean isLoginOK() {
+		return loginOK;
+	}
+
+	public static void setLoginOK(boolean loginOK) {
+		State.loginOK = loginOK;
+	}
+
+	public static String getAuthID() {
         return authID;
     }
 
