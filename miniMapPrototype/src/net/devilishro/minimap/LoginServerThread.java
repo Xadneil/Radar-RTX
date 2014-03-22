@@ -39,10 +39,10 @@ public class LoginServerThread extends Thread {
 				if (bytes == -1) {
 					inputStream.close();
 					outputStream.close();
-					Minimap.login_socket = null;
+					//Minimap.login_socket = null;
 					break;
 				}
-				Minimap.auth = new String(buffer);
+				//Minimap.auth = new String(buffer);
 				String s = "";
 				for (int i = 0; i < bytes; i++) {
 					s += String.format("%02X ", buffer[i]);

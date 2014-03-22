@@ -5,6 +5,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketCreator;
+import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -20,33 +23,42 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 
 public class Minimap extends Activity {
-	EditText login_email; // login email
-	EditText login_pass; // login password
-	InetAddress serverAddress; // login server address
-	static Socket login_socket; // login server connection socket
-	LoginServerThread login_thread; // login server socket handler
-	static String auth;
-
-	/**
-	 * Send packet 0xa1; authentication
-	 * 
-	 * @author trickyloki3
-	 */
-	public void onClickRegisterButton(View view) {
-		if (!State.networkDebug)
-			sendToServer(0xa3, login_email.getText().toString(), login_pass
-					.getText().toString());
-	}
+	private EditText login_email; // login email
+	private EditText login_pass; // login password
+	
+	private final int serverPort = 33600;
+	private Network loginServer;
+	private static Socket login_socket; // login server connection socket
+	private LoginServerThread login_thread; // login server socket handler
 
 	/**
 	 * Send packet 0xa3; registration
 	 * 
 	 * @author trickyloki3
 	 */
+	public void onClickRegisterButton(View view) {
+		if (!State.networkDebug)
+			/*
+			 * sendToServer(0xa3, login_email.getText().toString(), login_pass
+			 * .getText().toString());
+			 */
+			loginServer.send(PacketCreator.register(login_email.getText()
+					.toString(), login_pass.getText().toString()));
+	}
+
+	/**
+	 * Send packet 0xa1; authentication
+	 * 
+	 * @author trickyloki3
+	 */
 	public void onClickConnectButton(View view) {
 		if (!State.networkDebug)
-			sendToServer(0xa1, login_email.getText().toString(), login_pass
-					.getText().toString());
+			/*
+			 * sendToServer(0xa1, login_email.getText().toString(), login_pass
+			 * .getText().toString());
+			 */
+			loginServer.send(PacketCreator.login(login_email.getText()
+					.toString(), login_pass.getText().toString()));
 		else
 			startEventActivity();
 	}
@@ -63,6 +75,7 @@ public class Minimap extends Activity {
 		}
 	}
 
+	// TODO to be phased out
 	private void sendToServer(int packet_header, String packet_email,
 			String packet_password) {
 		byte[] header = new byte[3];
@@ -96,8 +109,8 @@ public class Minimap extends Activity {
 
 	public void startEventActivity() {
 		State.setEventNumber(1);
-		State.getEvents()[0] = new EventActivity.Event("Test Event", "Provider",
-				new LatLng(28.059891, -82.416183), 17.0f);
+		State.getEvents()[0] = new EventActivity.Event(0, "Test Event",
+				"Provider", new LatLng(28.059891, -82.416183), 17.0f);
 		State.setAdmin(true);
 		Intent i = new Intent(this, EventActivity.class);
 		startActivity(i);
@@ -113,9 +126,8 @@ public class Minimap extends Activity {
 		@Override
 		protected Socket doInBackground(Void... params) {
 			try {
-				// connect to the login server: 50.62.212.171:3360
-				serverAddress = InetAddress.getByName("50.62.212.171");
-				login_socket = new Socket(serverAddress, 33600);
+				// connect to the login server: 50.62.212.171:33600
+				login_socket = new Socket(State.getServerAddress(), 33600);
 
 				// create client thread to handle server IO
 				if (login_socket != null) {
@@ -155,7 +167,10 @@ public class Minimap extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		new CreateCommThreadTask().execute();
+		// TODO to be phased out
+		// new CreateCommThreadTask().execute();
+		loginServer = new Network(Type.LOGIN, State.getServerAddress(), serverPort, this);
+		loginServer.start();
 	}
 
 	/**
@@ -183,8 +198,11 @@ public class Minimap extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (login_socket != null)
-			new CloseSocketTask().execute();
+		/*
+		 * if (login_socket != null) new CloseSocketTask().execute();
+		 */
+		if (loginServer != null)
+			loginServer.close();
 	}
 
 	/**
@@ -197,8 +215,17 @@ public class Minimap extends Activity {
 	public Handler UIupdate = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
-			if (msg.what == 2) {
+			if (msg.what == 0) {
+				Toast.makeText(Minimap.this, "Registration Failed",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 1) {
+				Toast.makeText(Minimap.this, "Registration Successful",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 2) {
 				Toast.makeText(Minimap.this, "Login Incorrect",
+						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 3) {
+				Toast.makeText(Minimap.this, "Already Logged In",
 						Toast.LENGTH_LONG).show();
 			}
 		}

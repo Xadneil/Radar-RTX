@@ -4,6 +4,7 @@ import net.devilishro.minimap.EventActivity.Event;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -33,6 +35,9 @@ public class MapActivity extends Activity {
 	private static Handler handler;
 	private LocationProvider provider;
 	private LocationClient location;
+	private boolean isGooglePlayConnected = false;
+	private final int GOOGLE_PLAY_SERVICES = 0;
+	private final String TAG = "MapActivity";
 
 	@SuppressLint("HandlerLeak")
 	@Override
@@ -44,8 +49,8 @@ public class MapActivity extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_map);
-		
-		if (!setUpMapIfNeeded()) {
+
+		if (!setUpMap()) {
 			finish();
 			return;
 		}
@@ -75,23 +80,27 @@ public class MapActivity extends Activity {
 
 					@Override
 					public void onDisconnected() {
-						// TODO Auto-generated method stub
-
+						isGooglePlayConnected = false;
+						Log.d(TAG, "Google Play Services connected.");
 					}
 
 					@Override
 					public void onConnected(Bundle arg0) {
-						// TODO Auto-generated method stub
-
+						isGooglePlayConnected = true;
+						Log.d(TAG, "Google Play Services disconnected.");
 					}
 				}, new GooglePlayServicesClient.OnConnectionFailedListener() {
 
 					@Override
 					public void onConnectionFailed(ConnectionResult arg0) {
-						// TODO Auto-generated method stub
-
+						Log.e(TAG,
+								"Google Play Services reports connection failed.");
+						Toast.makeText(MapActivity.this, "Google Play Error",
+								Toast.LENGTH_LONG).show();
+						finish();
 					}
 				});
+
 	}
 
 	public static Handler getHandler() {
@@ -110,44 +119,64 @@ public class MapActivity extends Activity {
 	}
 
 	public LatLng getLocation() {
-		//TODO location stuff is broken due to Google
-		//Location loc = location.getLastLocation();
-		return null; //new LatLng(loc.getLatitude(), loc.getLongitude());
+		if (!isGooglePlayConnected)
+			return null;
+		Location loc;
+		try {
+			loc = location.getLastLocation();
+		} catch (Exception e) {
+			Log.e(TAG, "location failed", e);
+			return null;
+		}
+		return new LatLng(loc.getLatitude(), loc.getLongitude());
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (provider != null)
+		if (provider != null && !provider.isRunning()) {
 			provider.start();
+		} else if (provider == null) {
+			provider = new LocationProvider(this);
+			provider.start();
+		}
+		location.connect();
 	}
 
 	@Override
 	protected void onPause() {
-		if (provider != null)
+		if (provider != null) {
 			provider.finish();
+			provider = null;
+		}
 		super.onPause();
+		location.disconnect();
 	}
 
 	@Override
 	protected void onDestroy() {
-		if (provider != null)
-			provider.finish(); // just to make sure
+
 		super.onDestroy();
 	}
 
 	/**
 	 * Code based on Google tutorial
 	 */
-	private boolean setUpMapIfNeeded() {
+	private boolean setUpMap() {
 		// Do a null check to confirm that we have not already instantiated the
 		// map.
 		if (map == null) {
+			int gPlayStatus;
+			if ((gPlayStatus = GooglePlayServicesUtil
+					.isGooglePlayServicesAvailable(this)) != ConnectionResult.SUCCESS) {
+				GooglePlayServicesUtil.getErrorDialog(gPlayStatus, this,
+						GOOGLE_PLAY_SERVICES).show();
+			}
 			Fragment temp = getFragmentManager().findFragmentById(R.id.map);
 			if (temp == null) {
 				Toast.makeText(this, "The map failed to load.",
 						Toast.LENGTH_LONG).show();
-				Log.d("Map Debug", "Fragment null");
+				Log.e(TAG, "Fragment null");
 				return false;
 			}
 			map = ((MapFragment) temp).getMap();
@@ -155,11 +184,21 @@ public class MapActivity extends Activity {
 			if (map == null) {
 				Toast.makeText(this, "The map failed to load.",
 						Toast.LENGTH_LONG).show();
-				Log.d("Map Debug", "getMap null");
+				Log.e(TAG, "getMap null");
 				return false;
 			}
 		}
 		return true;
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == GOOGLE_PLAY_SERVICES) {
+			if (resultCode == RESULT_OK) {
+				// TODO need to test, find out what's in data
+				Log.wtf("MapActivity", data.toString());
+			}
+		}
 	}
 
 	private void displayPositions() {

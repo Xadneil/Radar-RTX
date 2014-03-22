@@ -1,9 +1,15 @@
 package net.devilishro.minimap;
 
+import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.Packet;
+import net.devilishro.minimap.network.PacketCreator;
+import net.devilishro.minimap.network.PacketHandlers;
+import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,20 +27,46 @@ public class EventActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View v, int position,
 				long id) {
-			State.setCurrentEvent(position);
+			State.setCurrentEvent(position); // update State
+			// send packet to server
+			eventServer.send(PacketCreator.selectEvent(position));
 
-			Intent i = new Intent(EventActivity.this, EventJoinActivity.class);
-			startActivity(i);
+			if (State.networkDebug) {
+				PacketHandlers.eventChoose.handlePacket(new Packet(), null,
+						EventActivity.this);
+			}
 		}
 	};
+
+	public Network eventServer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event);
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
+		Log.d("EventActivity", "State.getEvents(): "
+				+ (State.getEvents() == null ? "yes" : "no"));
 		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
+
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (eventServer == null) {
+			eventServer = new Network(Type.EVENT, State.getServerAddress(),
+					33601 /* event port */, this);
+			eventServer.start();
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		eventServer.close();
+		eventServer = null;
 	}
 
 	@Override
@@ -50,47 +82,61 @@ public class EventActivity extends Activity {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case 0: //replay
-			{
-				Intent i = new Intent(this, Replay.class);
-				startActivity(i);
-				break;
-			}
-			case 1: //friendforcer
-			{
-				Intent i = new Intent(this, EventJoinActivity.class);
-				startActivity(i);
-				break;
-			}
-			case 2://logout
-				//intent
-				break;
-			case 3://event add
-			{
-				Intent i = new Intent(this, EventAdd.class);
-				startActivity(i);
-				break;
-			}
-			case 4://event notify
-			{
-				Intent i = new Intent(this, Note_acti.class);
-				startActivity(i);
-				break;
-			}
-			case 5://player list
-			{
-				Intent i = new Intent(this, Player_state.class);
-				startActivity(i);
-				break;
-			}
+		case 0: // replay
+		{
+			Intent i = new Intent(this, Replay.class);
+			startActivity(i);
+			break;
+		}
+		case 1: // friendforcer
+		{
+			Intent i = new Intent(this, EventJoinActivity.class);
+			startActivity(i);
+			break;
+		}
+		case 2:// logout
+				// intent
+			break;
+		case 3:// event add
+		{
+			Intent i = new Intent(this, EventAdd.class);
+			startActivity(i);
+			break;
+		}
+		case 4:// event notify
+		{
+			Intent i = new Intent(this, Note_acti.class);
+			startActivity(i);
+			break;
+		}
+		case 5:// player list
+		{
+			Intent i = new Intent(this, Player_state.class);
+			startActivity(i);
+			break;
+		}
 		}
 		return true;
 	}
 
+	/**
+	 * Proceeds from event screen to join screen. Used by the event handler for
+	 * event choosing.
+	 */
+	public void startJoinActivity() {
+		Intent i = new Intent(EventActivity.this, EventJoinActivity.class);
+		startActivity(i);
+	}
+
+	/**
+	 * ArrayAdapter for showing custom layouts for each event
+	 * 
+	 * @author Daniel
+	 */
 	private static class EventAdapter extends ArrayAdapter<Event> {
 
 		Context context;
@@ -128,12 +174,28 @@ public class EventActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Event information
+	 * 
+	 * @author Daniel
+	 */
 	public static class Event {
 		public String title, provider;
 		public LatLng position;
 		public float zoom;
 
-		public Event(String title, String provider, LatLng position, float zoom) {
+		/**
+		 * Class Constructor
+		 * 
+		 * @param id
+		 *            event id for server
+		 * @param title
+		 * @param provider
+		 * @param position
+		 * @param zoom
+		 */
+		public Event(int id, String title, String provider, LatLng position,
+				float zoom) {
 			this.title = title;
 			this.provider = provider;
 			this.position = position;
