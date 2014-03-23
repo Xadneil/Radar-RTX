@@ -30,6 +30,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 //TODO re-lock map fragment movement in layout xml
+/**
+ * Map Activity. Displays the radar.
+ * 
+ * @author Daniel
+ */
 public class MapActivity extends Activity {
 	private GoogleMap map;
 	private static Handler handler;
@@ -50,12 +55,14 @@ public class MapActivity extends Activity {
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_map);
 
+		// initialize the map and markers
 		if (!setUpMap()) {
 			finish();
 			return;
 		}
 		initialize();
 
+		// configure the map
 		Event e = State.getCurrentEvent();
 		if (e == null) {
 			finish();
@@ -63,7 +70,6 @@ public class MapActivity extends Activity {
 		}
 		map.moveCamera(CameraUpdateFactory.newLatLng(e.position));
 		map.moveCamera(CameraUpdateFactory.zoomTo(e.zoom));
-
 		map.setMyLocationEnabled(true);
 		map.getUiSettings().setMyLocationButtonEnabled(false);
 
@@ -73,7 +79,6 @@ public class MapActivity extends Activity {
 				displayPositions();
 			}
 		};
-
 		provider = new LocationProvider(this);
 		location = new LocationClient(this,
 				new GooglePlayServicesClient.ConnectionCallbacks() {
@@ -100,9 +105,13 @@ public class MapActivity extends Activity {
 						finish();
 					}
 				});
-
 	}
 
+	/**
+	 * Gets the handler for this map activity in order to have the map update
+	 * 
+	 * @return the handler
+	 */
 	public static Handler getHandler() {
 		return handler;
 	}
@@ -196,7 +205,7 @@ public class MapActivity extends Activity {
 		if (requestCode == GOOGLE_PLAY_SERVICES) {
 			if (resultCode == RESULT_OK) {
 				// TODO need to test, find out what's in data
-				Log.wtf("MapActivity", data.toString());
+				Log.w("MapActivity", data.toString());
 			}
 		}
 	}
@@ -215,11 +224,15 @@ public class MapActivity extends Activity {
 	}
 
 	/**
-	 * Code from Google tutorials
+	 * Code from Google tutorials to smoothly move a
+	 * {@link com.google.android.gms.maps.model.Marker Marker}
 	 * 
 	 * @param marker
+	 *            the marker to move
 	 * @param toPosition
+	 *            the destination of the marker
 	 * @param hideMarker
+	 *            whether or not to hide the marker
 	 */
 	public void animateMarker(final Marker marker, final LatLng toPosition,
 			final boolean hideMarker) {

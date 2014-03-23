@@ -1,7 +1,6 @@
 package net.devilishro.minimap;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -22,10 +21,16 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
+/**
+ * Main app activity. Contains login logic.
+ * 
+ * @author trickyloki3
+ * @author Daniel
+ */
 public class Minimap extends Activity {
 	private EditText login_email; // login email
 	private EditText login_pass; // login password
-	
+
 	private final int serverPort = 33600;
 	private Network loginServer;
 	private static Socket login_socket; // login server connection socket
@@ -37,7 +42,7 @@ public class Minimap extends Activity {
 	 * @author trickyloki3
 	 */
 	public void onClickRegisterButton(View view) {
-		if (!State.networkDebug)
+		if (!State.networkBypass)
 			/*
 			 * sendToServer(0xa3, login_email.getText().toString(), login_pass
 			 * .getText().toString());
@@ -52,7 +57,7 @@ public class Minimap extends Activity {
 	 * @author trickyloki3
 	 */
 	public void onClickConnectButton(View view) {
-		if (!State.networkDebug)
+		if (!State.networkBypass)
 			/*
 			 * sendToServer(0xa1, login_email.getText().toString(), login_pass
 			 * .getText().toString());
@@ -107,6 +112,38 @@ public class Minimap extends Activity {
 		login_pass = (EditText) findViewById(R.id.userpass);
 	}
 
+	/**
+	 * Connect to login server.
+	 * 
+	 * @author trickyloki3
+	 */
+	@Override
+	public void onResume() {
+		super.onResume();
+		// TODO to be phased out
+		// new CreateCommThreadTask().execute();
+		loginServer = new Network(Type.LOGIN, State.serverAddress, serverPort,
+				this);
+		loginServer.start();
+	}
+
+	/**
+	 * Close the login server connection.
+	 * 
+	 * @author trickyloki3
+	 */
+	@Override
+	public void onPause() {
+		super.onPause();
+		/*
+		 * if (login_socket != null) new CloseSocketTask().execute();
+		 */
+		if (loginServer != null) {
+			loginServer.close();
+			loginServer = null;
+		}
+	}
+
 	public void startEventActivity() {
 		State.setEventNumber(1);
 		State.getEvents()[0] = new EventActivity.Event(0, "Test Event",
@@ -127,7 +164,7 @@ public class Minimap extends Activity {
 		protected Socket doInBackground(Void... params) {
 			try {
 				// connect to the login server: 50.62.212.171:33600
-				login_socket = new Socket(State.getServerAddress(), 33600);
+				login_socket = new Socket(State.serverAddress, 33600);
 
 				// create client thread to handle server IO
 				if (login_socket != null) {
@@ -160,20 +197,6 @@ public class Minimap extends Activity {
 	}
 
 	/**
-	 * Connect to login server.
-	 * 
-	 * @author trickyloki3
-	 */
-	@Override
-	public void onResume() {
-		super.onResume();
-		// TODO to be phased out
-		// new CreateCommThreadTask().execute();
-		loginServer = new Network(Type.LOGIN, State.getServerAddress(), serverPort, this);
-		loginServer.start();
-	}
-
-	/**
 	 * Close the login server connection socket.
 	 * 
 	 * @author trickyloki3
@@ -188,21 +211,6 @@ public class Minimap extends Activity {
 			}
 			return null;
 		}
-	}
-
-	/**
-	 * Close the login server connection.
-	 * 
-	 * @author trickyloki3
-	 */
-	@Override
-	public void onPause() {
-		super.onPause();
-		/*
-		 * if (login_socket != null) new CloseSocketTask().execute();
-		 */
-		if (loginServer != null)
-			loginServer.close();
 	}
 
 	/**
