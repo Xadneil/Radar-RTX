@@ -26,7 +26,8 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="net.devilishro.minimap.Minimap"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -35,27 +36,36 @@
         </activity>
         <activity
             android:name="net.devilishro.minimap.EventActivity"
-            android:label="@string/title_activity_event" >
+            android:label="@string/title_activity_event"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="net.devilishro.minimap.EventJoinActivity"
-            android:label="@string/title_activity_event_join" >
+            android:label="@string/title_activity_event_join"
+            android:screenOrientation="portrait" >
         </activity>
-        <activity android:name="net.devilishro.minimap.EventAdd" >
+        <activity
+            android:name="net.devilishro.minimap.EventAdd"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="net.devilishro.minimap.Note_acti"
-            android:label="@string/title_activity_note_acti" >
+            android:label="@string/title_activity_note_acti"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="net.devilishro.minimap.Player_state"
-            android:label="@string/title_activity_player_state" >
+            android:label="@string/title_activity_player_state"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="net.devilishro.minimap.Replay"
-            android:label="@string/title_activity_replay" >
+            android:label="@string/title_activity_replay"
+            android:screenOrientation="portrait" >
         </activity>
-        <activity android:name="net.devilishro.minimap.MapActivity" >
+        <activity
+            android:name="net.devilishro.minimap.MapActivity"
+            android:screenOrientation="portrait" >
         </activity>
 
         <meta-data

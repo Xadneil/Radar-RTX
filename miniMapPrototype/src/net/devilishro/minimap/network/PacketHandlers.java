@@ -33,7 +33,7 @@ public class PacketHandlers {
 	 * @author Daniel
 	 */
 	public enum Type {
-		LOGIN, EVENT, /* MAP */;
+		LOGIN, EVENT, /* MAP */; // Disable unused type(s) for safety
 	}
 
 	// =========================================================================
@@ -65,6 +65,7 @@ public class PacketHandlers {
 			case 201:
 				// Admin login
 				State.setAdmin(true);
+				// no break intended
 			case 200:
 				// User login
 				String authID = packet.getString(); // get auth id
@@ -102,6 +103,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for receiving the event list
+	 */
 	public static PacketHandler eventList = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -128,6 +132,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for event choice affirmation
+	 */
 	public static PacketHandler eventChoose = new PacketHandler() {
 		{
 			type = Type.EVENT;

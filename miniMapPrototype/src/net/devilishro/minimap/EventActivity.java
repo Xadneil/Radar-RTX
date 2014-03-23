@@ -22,6 +22,11 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+/**
+ * Event Activity. Contains the event list and the main menu.
+ * 
+ * @author Daniel
+ */
 public class EventActivity extends Activity {
 	private OnItemClickListener clickListener = new OnItemClickListener() {
 		@Override
@@ -31,7 +36,7 @@ public class EventActivity extends Activity {
 			// send packet to server
 			eventServer.send(PacketCreator.selectEvent(position));
 
-			if (State.networkDebug) {
+			if (State.networkBypass) {
 				PacketHandlers.eventChoose.handlePacket(new Packet(), null,
 						EventActivity.this);
 			}
@@ -49,15 +54,14 @@ public class EventActivity extends Activity {
 				+ (State.getEvents() == null ? "yes" : "no"));
 		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
-
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (eventServer == null) {
-			eventServer = new Network(Type.EVENT, State.getServerAddress(),
-					33601 /* event port */, this);
+		if (eventServer == null) { // and it should be null
+			eventServer = new Network(Type.EVENT, State.serverAddress,
+					33601 /* TODO event port */, this);
 			eventServer.start();
 		}
 	}
@@ -75,6 +79,7 @@ public class EventActivity extends Activity {
 		menu.add(0, 0, 0, "Replays");
 		menu.add(0, 1, 1, "FriendForcer");
 		menu.add(0, 2, 2, "Logout");
+		// Admin only options
 		if (State.isAdmin()) {
 			menu.add(0, 3, 3, "Event Add");
 			menu.add(0, 4, 4, "Event Notify");
@@ -86,21 +91,28 @@ public class EventActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case 0: // replay
+		case 0:// replay
 		{
 			Intent i = new Intent(this, Replay.class);
 			startActivity(i);
 			break;
 		}
-		case 1: // friendforcer
+		case 1:// friendforcer
 		{
 			Intent i = new Intent(this, EventJoinActivity.class);
 			startActivity(i);
 			break;
 		}
 		case 2:// logout
-				// intent
+		{
+			State.setLoginOK(false);
+			State.setAuthID(null);
+			// TODO logout packet, here or in Minimap
+			Intent i = new Intent(this, Minimap.class);
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(i);
 			break;
+		}
 		case 3:// event add
 		{
 			Intent i = new Intent(this, EventAdd.class);
@@ -183,6 +195,7 @@ public class EventActivity extends Activity {
 		public String title, provider;
 		public LatLng position;
 		public float zoom;
+		public int id;
 
 		/**
 		 * Class Constructor
@@ -190,9 +203,13 @@ public class EventActivity extends Activity {
 		 * @param id
 		 *            event id for server
 		 * @param title
+		 *            the main text of the event
 		 * @param provider
+		 *            the minor text of the event
 		 * @param position
+		 *            the location of the event
 		 * @param zoom
+		 *            the zoom level for the map of the event
 		 */
 		public Event(int id, String title, String provider, LatLng position,
 				float zoom) {
@@ -200,6 +217,7 @@ public class EventActivity extends Activity {
 			this.provider = provider;
 			this.position = position;
 			this.zoom = zoom;
+			this.id = id;
 		}
 	}
 

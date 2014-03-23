@@ -66,7 +66,7 @@ public class Network extends Thread {
 	public void run() {
 		isRunning = true;
 
-		if (net.devilishro.minimap.State.networkDebug) {
+		if (net.devilishro.minimap.State.networkBypass) {
 			return;
 		}
 
@@ -102,7 +102,7 @@ public class Network extends Thread {
 	 *            the packet
 	 */
 	public void send(Packet p) {
-		if (net.devilishro.minimap.State.networkDebug) {
+		if (net.devilishro.minimap.State.networkBypass) {
 			return;
 		}
 		try {
