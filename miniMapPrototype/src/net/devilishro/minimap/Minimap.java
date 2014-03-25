@@ -1,20 +1,14 @@
 package net.devilishro.minimap;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -33,8 +27,6 @@ public class Minimap extends Activity {
 
 	private final int serverPort = 33600;
 	private Network loginServer;
-	private static Socket login_socket; // login server connection socket
-	private LoginServerThread login_thread; // login server socket handler
 
 	/**
 	 * Send packet 0xa3; registration
@@ -66,35 +58,6 @@ public class Minimap extends Activity {
 					.toString(), login_pass.getText().toString()));
 		else
 			startEventActivity();
-	}
-
-	/**
-	 * Packet sender functions
-	 * 
-	 * @author trickyloki3
-	 */
-	private class WriteToServerTask extends AsyncTask<byte[], Void, Void> {
-		protected Void doInBackground(byte[]... data) {
-			login_thread.write(data[0], data[1], data[2]);
-			return null;
-		}
-	}
-
-	// TODO to be phased out
-	private void sendToServer(int packet_header, String packet_email,
-			String packet_password) {
-		byte[] header = new byte[3];
-		header[1] = (byte) (packet_header >> 0);
-		header[0] = (byte) (packet_header >> 8);
-		byte[] email_encode = packet_email.getBytes();
-		byte[] pass_encode = packet_password.getBytes();
-		if (login_socket != null) {
-			new WriteToServerTask().execute(header, email_encode, pass_encode);
-		} else {
-			Toast.makeText(this, "Attempting to connect to login server.",
-					Toast.LENGTH_LONG).show();
-			new CreateCommThreadTask().execute();
-		}
 	}
 
 	/**
@@ -151,66 +114,6 @@ public class Minimap extends Activity {
 		State.setAdmin(true);
 		Intent i = new Intent(this, EventActivity.class);
 		startActivity(i);
-	}
-
-	/**
-	 * CreateCommThreadTask adapted from Beginning Android 4 Creates a
-	 * connection with login server
-	 * 
-	 * @author trickyloki3
-	 */
-	private class CreateCommThreadTask extends AsyncTask<Void, Integer, Socket> {
-		@Override
-		protected Socket doInBackground(Void... params) {
-			try {
-				// connect to the login server: 50.62.212.171:33600
-				login_socket = new Socket(State.serverAddress, 33600);
-
-				// create client thread to handle server IO
-				if (login_socket != null) {
-					login_thread = new LoginServerThread(Minimap.this,
-							login_socket);
-					login_thread.start();
-				}
-			} catch (UnknownHostException e) {
-				// Failed to get host name
-				Log.d("sockets", e.getLocalizedMessage());
-			} catch (IOException e) {
-				// Failed to connect to login server
-				Log.d("Sockets", e.getLocalizedMessage());
-			}
-			return login_socket;
-		}
-
-		protected void onPostExecute(Socket login_thread) {
-			if (login_thread == null)
-				Toast.makeText(
-						getBaseContext(),
-						"Unable to connect to login server, please try again later.",
-						Toast.LENGTH_LONG).show();
-			else
-				Toast.makeText(
-						getBaseContext(),
-						"Connected to login server, please enter your email and password.",
-						Toast.LENGTH_LONG).show();
-		}
-	}
-
-	/**
-	 * Close the login server connection socket.
-	 * 
-	 * @author trickyloki3
-	 */
-	private class CloseSocketTask extends AsyncTask<Void, Void, Void> {
-		@Override
-		protected Void doInBackground(Void... params) {
-			try {
-				login_socket.close();
-			} catch (IOException e) {
-				Log.d("Sockets", e.getLocalizedMessage());
-			}
-			return null;
-		}
 	}
 
 	/**
