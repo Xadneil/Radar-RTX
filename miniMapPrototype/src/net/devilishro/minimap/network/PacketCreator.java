@@ -1,5 +1,7 @@
 package net.devilishro.minimap.network;
 
+import net.devilishro.minimap.State;
+
 /**
  * Class for creating packets to send to the servers
  * 
@@ -42,6 +44,22 @@ public class PacketCreator {
 	}
 
 	/**
+	 * Creates a logout packet containing the email and auth id
+	 * 
+	 * @param email
+	 * @return the logout packet
+	 */
+	public static Packet logout(String email) {
+		Packet ret = new Packet(2 + 4 + State.getAuthID().length() + 4
+				+ email.length());
+		ret.pack_short((short) SendOpcode.LOGOUT.getValue());
+		ret.pack_string(State.getAuthID());
+		ret.pack_string(email);
+		State.setAuthID(null); // set null; new id with new login
+		return ret;
+	}
+
+	/**
 	 * Creates a packet for choosing an event
 	 * 
 	 * @param id
@@ -51,7 +69,23 @@ public class PacketCreator {
 	public static Packet selectEvent(int id) {
 		Packet ret = new Packet(2 + 4);
 		ret.pack_short((short) SendOpcode.SELECT_EVENT.getValue());
+		// TODO email, authid
 		ret.pack_int(id);
+		return ret;
+	}
+
+	public static Packet addEvent(String name, String team1, String team2,
+			short type, String message) {
+		Packet ret = new Packet(0);
+		// TODO username(in State), authid
+		// TODO params
+		return ret;
+	}
+
+	public static Packet requestEventList() {
+		Packet ret = new Packet(0);
+		ret.pack_short((short) SendOpcode.EVENT_LIST_REQUEST.getValue());
+		// TODO user & auth
 		return ret;
 	}
 }

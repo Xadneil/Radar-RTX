@@ -85,8 +85,9 @@ public class Network extends Thread {
 				bytesRead = socket.getInputStream().read(buffer);
 				if (bytesRead == -1) {
 					close();
+				} else if (bytesRead == BUFFER_SIZE) {
+					Log.e(TAG, "Buffer Size Too Small!");
 				}
-				// TODO when Packet is implemented
 				Packet p = new Packet(buffer, bytesRead, true);
 				handlers.get(p.extract_short()).handlePacket(p, socket, context);
 			} catch (Exception e) {

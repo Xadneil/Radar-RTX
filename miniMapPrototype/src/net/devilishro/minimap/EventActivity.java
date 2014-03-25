@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+// TODO refresh button
 /**
  * Event Activity. Contains the event list and the main menu.
  * 
@@ -60,8 +61,8 @@ public class EventActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		if (eventServer == null) { // and it should be null
-			eventServer = new Network(Type.EVENT, State.serverAddress,
-					33601 /* TODO event port */, this);
+			eventServer = new Network(Type.EVENT, State.serverAddress, 33630,
+					this);
 			eventServer.start();
 		}
 	}
@@ -159,7 +160,7 @@ public class EventActivity extends Activity {
 		}
 
 		private static class InfoStruct {
-			public TextView title, provider;
+			public TextView title, message;
 		}
 
 		@Override
@@ -171,8 +172,8 @@ public class EventActivity extends Activity {
 				convertView = View.inflate(context, R.layout.view_event, null);
 				is = new InfoStruct();
 				is.title = (TextView) convertView.findViewById(R.id.event_name);
-				is.provider = (TextView) convertView
-						.findViewById(R.id.event_provider);
+				is.message = (TextView) convertView
+						.findViewById(R.id.event_message);
 				convertView.setTag(is);
 			} else {
 				is = (InfoStruct) convertView.getTag();
@@ -180,7 +181,7 @@ public class EventActivity extends Activity {
 			Event event = State.getEvents()[position];
 			if (event != null) {
 				is.title.setText(event.title);
-				is.provider.setText(event.provider);
+				is.message.setText(event.message);
 			}
 			return convertView;
 		}
@@ -192,10 +193,11 @@ public class EventActivity extends Activity {
 	 * @author Daniel
 	 */
 	public static class Event {
-		public String title, provider;
+		public String title, message;
 		public LatLng position;
 		public float zoom;
 		public int id;
+		public short type;
 
 		/**
 		 * Class Constructor
@@ -214,10 +216,13 @@ public class EventActivity extends Activity {
 		public Event(int id, String title, String provider, LatLng position,
 				float zoom) {
 			this.title = title;
-			this.provider = provider;
+			this.message = provider;
 			this.position = position;
 			this.zoom = zoom;
 			this.id = id;
+		}
+
+		public Event() {
 		}
 	}
 

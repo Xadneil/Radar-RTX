@@ -90,16 +90,16 @@ public class PacketHandlers {
 		public void handlePacket(Packet packet, Socket s, Activity context) {
 			short status = packet.extract_short();
 			Minimap activity = (Minimap) context;
-			switch (status) {
-			case 128:
+
+			if (true) { // TODO
 				// Registration failure
 				activity.UIupdate.obtainMessage(0).sendToTarget();
-				break;
-			case 137:
+			}
+			if (true) { // TODO
 				// Registration success
 				activity.UIupdate.obtainMessage(1).sendToTarget();
-				break;
 			}
+
 		}
 	};
 
@@ -114,19 +114,18 @@ public class PacketHandlers {
 
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
-			int numEvents = packet.extract_short();
+			int numEvents = packet.extract_int();
 			State.setEventNumber(numEvents);
 			for (int i = 0; i < numEvents; i++) {
 				int id = packet.extract_int();
 				String title = packet.extract_string();
-				String provider = packet.extract_string();
-				// TODO decide if following info is in event server or map
-				// server
-				double latitude = packet.extract_double();
-				double longitude = packet.extract_double();
-				float zoom = packet.extract_float();
-				Event event = new Event(id, title, provider, new LatLng(
-						latitude, longitude), zoom);
+				String message = packet.extract_string();
+				short type = packet.extract_short();
+				Event event = new Event();
+				event.id = id;
+				event.title = title;
+				event.message = message;
+				event.type = type;
 				State.getEvents()[i] = event;
 			}
 		}
@@ -143,9 +142,43 @@ public class PacketHandlers {
 
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
-			// map port
-			packet.extract_short();
+			short status = packet.extract_short();
+			if (/*status == some value*/true) {
+				// TODO team1, team2
+			}
 			((EventActivity) context).startJoinActivity();
+		}
+	};
+
+	public static PacketHandler playerListUpdate = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.PLAYER_LIST_UPDATE;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Socket s, Activity context) {
+			short whichTeam = packet.extract_short();
+			// TODO get add/delete
+			int numPlayers = packet.extract_int();
+			for (int i = 0; i < numPlayers; i++) {
+				String playerName = packet.extract_string();
+				// TODO put names in State
+				// TODO possibly update UI?
+			}
+		}
+	};
+
+	public static PacketHandler eventAddResponse = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.EVENT_ADD;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Socket s, Activity context) {
+			short status = packet.extract_short();
+			// TODO process status code
 		}
 	};
 

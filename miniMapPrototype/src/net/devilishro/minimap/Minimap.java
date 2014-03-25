@@ -25,7 +25,7 @@ public class Minimap extends Activity {
 	private EditText login_email; // login email
 	private EditText login_pass; // login password
 
-	private final int serverPort = 33600;
+	private final int serverPort = 33620;
 	private Network loginServer;
 
 	/**
@@ -35,10 +35,6 @@ public class Minimap extends Activity {
 	 */
 	public void onClickRegisterButton(View view) {
 		if (!State.networkBypass)
-			/*
-			 * sendToServer(0xa3, login_email.getText().toString(), login_pass
-			 * .getText().toString());
-			 */
 			loginServer.send(PacketCreator.register(login_email.getText()
 					.toString(), login_pass.getText().toString()));
 	}
@@ -50,10 +46,6 @@ public class Minimap extends Activity {
 	 */
 	public void onClickConnectButton(View view) {
 		if (!State.networkBypass)
-			/*
-			 * sendToServer(0xa1, login_email.getText().toString(), login_pass
-			 * .getText().toString());
-			 */
 			loginServer.send(PacketCreator.login(login_email.getText()
 					.toString(), login_pass.getText().toString()));
 		else
@@ -83,8 +75,6 @@ public class Minimap extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		// TODO to be phased out
-		// new CreateCommThreadTask().execute();
 		loginServer = new Network(Type.LOGIN, State.serverAddress, serverPort,
 				this);
 		loginServer.start();
@@ -98,9 +88,6 @@ public class Minimap extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		/*
-		 * if (login_socket != null) new CloseSocketTask().execute();
-		 */
 		if (loginServer != null) {
 			loginServer.close();
 			loginServer = null;
