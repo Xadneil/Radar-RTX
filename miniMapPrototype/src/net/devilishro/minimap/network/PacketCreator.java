@@ -34,9 +34,10 @@ public class PacketCreator {
 	}
 
 	private static Packet loginImpl(Opcode opcode, String email, String password) {
-		Packet ret = new Packet(opcode);
-		ret.addPaddedString(email, 64);
-		ret.addPaddedString(password, 64);
+		Packet ret = new Packet(4 + email.length() + 4 + password.length() + 2);
+		ret.pack_short((short) opcode.getValue());
+		ret.pack_string(email);
+		ret.pack_string(password);
 		return ret;
 	}
 
@@ -48,8 +49,9 @@ public class PacketCreator {
 	 * @return the event choosing packet
 	 */
 	public static Packet selectEvent(int id) {
-		Packet ret = new Packet(SendOpcode.SELECT_EVENT);
-		ret.addInt(id);
+		Packet ret = new Packet(2 + 4);
+		ret.pack_short((short) SendOpcode.SELECT_EVENT.getValue());
+		ret.pack_int(id);
 		return ret;
 	}
 }

@@ -51,7 +51,7 @@ public class PacketHandlers {
 
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
-			short status = packet.getShort();
+			short status = packet.extract_short();
 			Minimap activity = (Minimap) context;
 			switch (status) {
 			case 401:
@@ -68,7 +68,7 @@ public class PacketHandlers {
 				// no break intended
 			case 200:
 				// User login
-				String authID = packet.getString(); // get auth id
+				String authID = packet.extract_string(); // get auth id
 				State.setAuthID(authID);
 				State.setLoginOK(true);
 				activity.startEventActivity(); // go from login screen to event
@@ -88,7 +88,7 @@ public class PacketHandlers {
 
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
-			short status = packet.getShort();
+			short status = packet.extract_short();
 			Minimap activity = (Minimap) context;
 			switch (status) {
 			case 128:
@@ -114,17 +114,17 @@ public class PacketHandlers {
 
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
-			int numEvents = packet.getShort();
+			int numEvents = packet.extract_short();
 			State.setEventNumber(numEvents);
 			for (int i = 0; i < numEvents; i++) {
-				int id = packet.getInt();
-				String title = packet.getString();
-				String provider = packet.getString();
+				int id = packet.extract_int();
+				String title = packet.extract_string();
+				String provider = packet.extract_string();
 				// TODO decide if following info is in event server or map
 				// server
-				double latitude = packet.getDouble();
-				double longitude = packet.getDouble();
-				float zoom = packet.getFloat();
+				double latitude = packet.extract_double();
+				double longitude = packet.extract_double();
+				float zoom = packet.extract_float();
 				Event event = new Event(id, title, provider, new LatLng(
 						latitude, longitude), zoom);
 				State.getEvents()[i] = event;
@@ -144,7 +144,7 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Socket s, Activity context) {
 			// map port
-			packet.getShort();
+			packet.extract_short();
 			((EventActivity) context).startJoinActivity();
 		}
 	};

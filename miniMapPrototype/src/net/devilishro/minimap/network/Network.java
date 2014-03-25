@@ -87,8 +87,8 @@ public class Network extends Thread {
 					close();
 				}
 				// TODO when Packet is implemented
-				Packet p = new Packet(/* buffer */);
-				handlers.get(p.getOpcode()).handlePacket(p, socket, context);
+				Packet p = new Packet(buffer, bytesRead, true);
+				handlers.get(p.extract_short()).handlePacket(p, socket, context);
 			} catch (Exception e) {
 				Log.e(TAG, "Socket Receive Error", e);
 			}
@@ -107,7 +107,7 @@ public class Network extends Thread {
 		}
 		try {
 			if (isRunning && !socket.isClosed())
-				socket.getOutputStream().write(p.getPacket());
+				socket.getOutputStream().write(p.get_packet());
 		} catch (IOException e) {
 			Log.e(TAG, "Socket Send Error", e);
 		}

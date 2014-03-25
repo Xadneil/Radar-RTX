@@ -37,7 +37,7 @@ public class EventActivity extends Activity {
 			eventServer.send(PacketCreator.selectEvent(position));
 
 			if (State.networkBypass) {
-				PacketHandlers.eventChoose.handlePacket(new Packet(), null,
+				PacketHandlers.eventChoose.handlePacket(new Packet(0), null,
 						EventActivity.this);
 			}
 		}

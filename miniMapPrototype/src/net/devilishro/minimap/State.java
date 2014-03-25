@@ -36,7 +36,7 @@ public class State {
 	// general information
 	private static String authID;
 	public static InetAddress serverAddress;
-	public static boolean networkBypass = true;
+	public static boolean networkBypass = false;
 
 	private static String TAG = "State";
 
