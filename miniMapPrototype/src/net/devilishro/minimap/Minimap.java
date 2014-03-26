@@ -2,7 +2,6 @@ package net.devilishro.minimap;
 
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
-import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -24,9 +23,8 @@ import com.google.android.gms.maps.model.LatLng;
 public class Minimap extends Activity {
 	private EditText login_email; // login email
 	private EditText login_pass; // login password
-
-	private final int serverPort = 33620;
-	private Network loginServer;
+	private EditText login_pass_confirm; // login password confirm
+	private boolean isRegister = false;
 
 	/**
 	 * Send packet 0xa3; registration
@@ -34,9 +32,35 @@ public class Minimap extends Activity {
 	 * @author trickyloki3
 	 */
 	public void onClickRegisterButton(View view) {
-		if (!State.networkBypass)
-			loginServer.send(PacketCreator.register(login_email.getText()
-					.toString(), login_pass.getText().toString()));
+		if (!isRegister) {
+			isRegister = true;
+			findViewById(R.id.password_confirm_text).setVisibility(View.VISIBLE);
+			login_pass_confirm.setVisibility(View.VISIBLE);
+			login_pass_confirm.requestFocus();
+		} else {
+			if (login_pass.getText().toString()
+					.equals(login_pass_confirm.getText().toString())) {
+				
+				isRegister = false;
+				findViewById(R.id.password_confirm_text).setVisibility(View.INVISIBLE);
+				login_pass_confirm.setVisibility(View.INVISIBLE);
+				
+				if (!State.networkBypass) {
+					if (State.getLoginServer() == null) {
+						Toast.makeText(this,
+								"Please wait until the network is ready.",
+								Toast.LENGTH_LONG).show();
+					} else {
+						State.getLoginServer().send(
+								PacketCreator.register(login_email.getText()
+										.toString(), login_pass.getText()
+										.toString()));
+					}
+				}
+			} else {
+				Toast.makeText(this, "The passwords must be the same!", Toast.LENGTH_LONG).show();
+			}
+		}
 	}
 
 	/**
@@ -45,11 +69,24 @@ public class Minimap extends Activity {
 	 * @author trickyloki3
 	 */
 	public void onClickConnectButton(View view) {
-		if (!State.networkBypass)
-			loginServer.send(PacketCreator.login(login_email.getText()
-					.toString(), login_pass.getText().toString()));
-		else
+		if (!State.networkBypass) {
+			if (State.getLoginServer() == null) {
+				Toast.makeText(this, "Please wait until the network is ready.",
+						Toast.LENGTH_LONG).show();
+			} else {
+				State.getLoginServer().send(
+						PacketCreator.login(login_email.getText().toString(),
+								login_pass.getText().toString()));
+			}
+		} else
 			startEventActivity();
+	}
+
+	private void verifyInformation() {
+		//>5
+		//<=25
+		//user:alpha, digit
+		//pass:needs upper, digit
 	}
 
 	/**
@@ -65,6 +102,7 @@ public class Minimap extends Activity {
 
 		login_email = (EditText) findViewById(R.id.useremail);
 		login_pass = (EditText) findViewById(R.id.userpass);
+		login_pass_confirm = (EditText) findViewById(R.id.password_confirm);
 	}
 
 	/**
@@ -75,9 +113,13 @@ public class Minimap extends Activity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		loginServer = new Network(Type.LOGIN, State.serverAddress, serverPort,
-				this);
-		loginServer.start();
+		if (State.getLoginServer() != null) {
+			State.getLoginServer().registerContext(this,
+					Network.Activities.LOGIN);
+			if (!State.getLoginServer().isRunning()) {
+				State.getLoginServer().start();
+			}
+		}
 	}
 
 	/**
@@ -88,10 +130,15 @@ public class Minimap extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (loginServer != null) {
-			loginServer.close();
-			loginServer = null;
+		if (State.getLoginServer() != null) {
+			State.getLoginServer().unregisterContext(Network.Activities.LOGIN);
+			State.getLoginServer().close();
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 	}
 
 	public void startEventActivity() {
@@ -120,11 +167,14 @@ public class Minimap extends Activity {
 				Toast.makeText(Minimap.this, "Registration Successful",
 						Toast.LENGTH_LONG).show();
 			} else if (msg.what == 2) {
-				Toast.makeText(Minimap.this, "Login Incorrect",
+				Toast.makeText(Minimap.this, "Invalid Username or Password",
 						Toast.LENGTH_LONG).show();
 			} else if (msg.what == 3) {
-				Toast.makeText(Minimap.this, "Already Logged In",
-						Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						Minimap.this,
+						Minimap.this.login_email.getText().toString()
+								+ "Is Already Logged In", Toast.LENGTH_LONG)
+						.show();
 			}
 		}
 	};

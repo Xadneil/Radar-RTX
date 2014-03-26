@@ -9,7 +9,7 @@
     tools:context=".Note_acti" >
 
     <ListView
-        android:id="@+id/listView1"
+        android:id="@+id/team1_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/textView1"
@@ -22,9 +22,9 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/listView1"
+        android:layout_alignLeft="@+id/team1_list"
         android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/listView1"
+        android:layout_alignRight="@+id/team1_list"
         android:layout_marginBottom="138dp"
         android:text="Large Text"
         android:textAppearance="?android:attr/textAppearanceLarge" />

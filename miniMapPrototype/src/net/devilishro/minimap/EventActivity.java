@@ -1,10 +1,11 @@
 package net.devilishro.minimap;
 
+import java.util.HashMap;
+
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.Packet;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
-import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -35,16 +36,17 @@ public class EventActivity extends Activity {
 				long id) {
 			State.setCurrentEvent(position); // update State
 			// send packet to server
-			eventServer.send(PacketCreator.selectEvent(position));
+			State.getEventServer().send(PacketCreator.selectEvent(position));
 
 			if (State.networkBypass) {
+				HashMap<Network.Activities, Activity> temp = new HashMap<Network.Activities, Activity>(
+						1);
+				temp.put(Network.Activities.EVENT_LIST, EventActivity.this);
 				PacketHandlers.eventChoose.handlePacket(new Packet(0), null,
-						EventActivity.this);
+						temp);
 			}
 		}
 	};
-
-	public Network eventServer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,18 +62,15 @@ public class EventActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (eventServer == null) { // and it should be null
-			eventServer = new Network(Type.EVENT, State.serverAddress, 33630,
-					this);
-			eventServer.start();
-		}
+		State.getEventServer().registerContext(this, Network.Activities.EVENT_LIST);
+
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		eventServer.close();
-		eventServer = null;
+		State.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
+
 	}
 
 	@Override
@@ -107,8 +106,8 @@ public class EventActivity extends Activity {
 		case 2:// logout
 		{
 			State.setLoginOK(false);
-			State.setAuthID(null);
-			// TODO logout packet, here or in Minimap
+			State.getEventServer().send(PacketCreator.logout());
+			State.setEmail(null);
 			Intent i = new Intent(this, Minimap.class);
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);

@@ -3,6 +3,7 @@ package net.devilishro.minimap.network;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashMap;
 
 import net.devilishro.minimap.network.PacketHandlers.PacketHandler;
 import net.devilishro.minimap.network.PacketHandlers.Type;
@@ -22,7 +23,7 @@ public class Network extends Thread {
 
 	private final InetAddress address;
 	private final int port;
-	private final Activity context;
+	private final HashMap<Activities, Activity> context = new HashMap<Activities, Activity>();
 	private final SparseArray<PacketHandler> handlers;
 	private boolean isRunning = false;
 	private Socket socket;
@@ -43,11 +44,10 @@ public class Network extends Thread {
 	 *            {@link net.devilishro.minimap.network.PacketHandlers.PacketHandler
 	 *            PacketHandler}s can use
 	 */
-	public Network(Type type, InetAddress address, int port, Activity context) {
+	public Network(Type type, InetAddress address, int port) {
 		super(type.name());
 		this.address = address;
 		this.port = port;
-		this.context = context;
 		handlers = PacketHandlers.getHandlers(type);
 		TAG = "Network for " + type.name();
 	}
@@ -85,6 +85,7 @@ public class Network extends Thread {
 				bytesRead = socket.getInputStream().read(buffer);
 				if (bytesRead == -1) {
 					close();
+					return;
 				} else if (bytesRead == BUFFER_SIZE) {
 					Log.e(TAG, "Buffer Size Too Small!");
 				}
@@ -94,6 +95,14 @@ public class Network extends Thread {
 				Log.e(TAG, "Socket Receive Error", e);
 			}
 		}
+	}
+
+	public void registerContext(Activity activity, Activities type) {
+		context.put(type, activity);
+	}
+
+	public void unregisterContext(Activities type) {
+		context.remove(type);
 	}
 
 	/**
@@ -126,5 +135,9 @@ public class Network extends Thread {
 		} catch (Exception e) {
 			// ignore any IOException or NullPointerException
 		}
+	}
+
+	public enum Activities {
+		LOGIN, EVENT_LIST, EVENT_ADD, TEAM_JOIN, MAP, NOTIFICATION, REPLAY, PLAYER_LIST;
 	}
 }

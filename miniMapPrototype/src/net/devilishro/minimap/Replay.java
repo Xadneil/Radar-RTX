@@ -21,7 +21,7 @@ public class Replay extends Activity {
 		setContentView(R.layout.activity_replay);
 		listy = new ArrayList<String>();
 		setList();
-		ListView one = (ListView) this.findViewById(R.id.listView1);
+		ListView one = (ListView) this.findViewById(R.id.team1_list);
 		one.setAdapter(new CoolAdapter(this, listy));
 	}
 
@@ -36,7 +36,7 @@ public class Replay extends Activity {
 		ArrayList<String> b;
 
 		public CoolAdapter(Replay player_state, ArrayList<String> liste) {
-			super(player_state, R.id.listView1, liste);
+			super(player_state, R.id.team1_list, liste);
 			b = liste;
 			context = player_state;
 		}

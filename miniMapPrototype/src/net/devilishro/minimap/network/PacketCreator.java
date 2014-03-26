@@ -49,13 +49,10 @@ public class PacketCreator {
 	 * @param email
 	 * @return the logout packet
 	 */
-	public static Packet logout(String email) {
-		Packet ret = new Packet(2 + 4 + State.getAuthID().length() + 4
-				+ email.length());
+	public static Packet logout() {
+		Packet ret = new Packet(2 + 4 + State.getEmail().length());
 		ret.pack_short((short) SendOpcode.LOGOUT.getValue());
-		ret.pack_string(State.getAuthID());
-		ret.pack_string(email);
-		State.setAuthID(null); // set null; new id with new login
+		ret.pack_string(State.getEmail());
 		return ret;
 	}
 
@@ -77,7 +74,7 @@ public class PacketCreator {
 	public static Packet addEvent(String name, String team1, String team2,
 			short type, String message) {
 		Packet ret = new Packet(0);
-		// TODO username(in State), authid
+		// TODO username(in State)
 		// TODO params
 		return ret;
 	}
@@ -86,6 +83,12 @@ public class PacketCreator {
 		Packet ret = new Packet(0);
 		ret.pack_short((short) SendOpcode.EVENT_LIST_REQUEST.getValue());
 		// TODO user & auth
+		return ret;
+	}
+
+	public static Packet leaveEvent(int id) {
+		Packet ret = new Packet(0);
+
 		return ret;
 	}
 }

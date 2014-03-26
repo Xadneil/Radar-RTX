@@ -3,15 +3,15 @@ package net.devilishro.minimap.network;
 import java.lang.reflect.Field;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.Minimap;
 import net.devilishro.minimap.State;
+import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
 import android.util.SparseArray;
-
-import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Defines and aggregates
@@ -50,26 +50,25 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
-			Minimap activity = (Minimap) context;
+			Minimap activity = (Minimap) context.get(Activities.LOGIN);
 			switch (status) {
-			case 401:
+			case 0x1D7:
 				// Login failed
 				activity.UIupdate.obtainMessage(2).sendToTarget();
 				break;
-			case 471:
+			case 0x1D8:
 				// Already Logged In
 				activity.UIupdate.obtainMessage(3).sendToTarget();
 				break;
-			case 201:
+			case 0x1DA:
 				// Admin login
 				State.setAdmin(true);
 				// no break intended
-			case 200:
+			case 0x1D9:
 				// User login
-				String authID = packet.extract_string(); // get auth id
-				State.setAuthID(authID);
 				State.setLoginOK(true);
 				activity.startEventActivity(); // go from login screen to event
 				break;
@@ -79,6 +78,7 @@ public class PacketHandlers {
 
 	/**
 	 * Packet Handler for registration responses
+	 * 
 	 */
 	public static PacketHandler register = new PacketHandler() {
 		{
@@ -87,10 +87,12 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
-			Minimap activity = (Minimap) context;
+			Minimap activity = (Minimap) context.get(Activities.LOGIN);
 
+			// TODO bitmask, make error message area in minimap
 			if (true) { // TODO
 				// Registration failure
 				activity.UIupdate.obtainMessage(0).sendToTarget();
@@ -113,7 +115,8 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			int numEvents = packet.extract_int();
 			State.setEventNumber(numEvents);
 			for (int i = 0; i < numEvents; i++) {
@@ -141,12 +144,14 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
-			if (/*status == some value*/true) {
+			if (/* status == some value */true) {
 				// TODO team1, team2
 			}
-			((EventActivity) context).startJoinActivity();
+			((EventActivity) context.get(Activities.EVENT_LIST))
+					.startJoinActivity();
 		}
 	};
 
@@ -157,7 +162,8 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			short whichTeam = packet.extract_short();
 			// TODO get add/delete
 			int numPlayers = packet.extract_int();
@@ -176,7 +182,8 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s, Activity context) {
+		public void handlePacket(Packet packet, Socket s,
+				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
 			// TODO process status code
 		}
@@ -244,6 +251,6 @@ public class PacketHandlers {
 		protected Opcode opcode;
 
 		public abstract void handlePacket(Packet packet, Socket s,
-				Activity context);
+				HashMap<Network.Activities, Activity> context);
 	}
 }
