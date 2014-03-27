@@ -69,4 +69,10 @@
 
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/login_error_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="" />
+
 </LinearLayout>

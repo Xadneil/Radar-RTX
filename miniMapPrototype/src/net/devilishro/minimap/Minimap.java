@@ -2,6 +2,8 @@ package net.devilishro.minimap;
 
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
+import net.devilishro.minimap.network.PacketHandlers;
+import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -10,10 +12,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
+//TODO check internet connectivity
 /**
  * Main app activity. Contains login logic.
  * 
@@ -21,79 +25,66 @@ import com.google.android.gms.maps.model.LatLng;
  * @author Daniel
  */
 public class Minimap extends Activity {
+	@SuppressWarnings("unused")
+	private final String TAG = "Minimap";
 	private EditText login_email; // login email
 	private EditText login_pass; // login password
 	private EditText login_pass_confirm; // login password confirm
+	private TextView register_error;
 	private boolean isRegister = false;
+	private Network loginServer;
 
 	/**
-	 * Send packet 0xa3; registration
-	 * 
-	 * @author trickyloki3
+	 * Send registration packet
 	 */
 	public void onClickRegisterButton(View view) {
 		if (!isRegister) {
 			isRegister = true;
-			findViewById(R.id.password_confirm_text).setVisibility(View.VISIBLE);
+			findViewById(R.id.password_confirm_text)
+					.setVisibility(View.VISIBLE);
 			login_pass_confirm.setVisibility(View.VISIBLE);
 			login_pass_confirm.requestFocus();
 		} else {
 			if (login_pass.getText().toString()
 					.equals(login_pass_confirm.getText().toString())) {
-				
+
 				isRegister = false;
-				findViewById(R.id.password_confirm_text).setVisibility(View.INVISIBLE);
+				findViewById(R.id.password_confirm_text).setVisibility(
+						View.INVISIBLE);
 				login_pass_confirm.setVisibility(View.INVISIBLE);
-				
-				if (!State.networkBypass) {
-					if (State.getLoginServer() == null) {
-						Toast.makeText(this,
-								"Please wait until the network is ready.",
-								Toast.LENGTH_LONG).show();
-					} else {
-						State.getLoginServer().send(
-								PacketCreator.register(login_email.getText()
-										.toString(), login_pass.getText()
-										.toString()));
-					}
+
+				if (!AppState.networkBypass) {
+					loginServer.send(PacketCreator.register(login_email
+							.getText().toString(), login_pass.getText()
+							.toString()));
 				}
 			} else {
-				Toast.makeText(this, "The passwords must be the same!", Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "The passwords must be the same!",
+						Toast.LENGTH_LONG).show();
 			}
 		}
 	}
 
 	/**
-	 * Send packet 0xa1; authentication
-	 * 
-	 * @author trickyloki3
+	 * Send login packet
 	 */
 	public void onClickConnectButton(View view) {
-		if (!State.networkBypass) {
-			if (State.getLoginServer() == null) {
+		if (!AppState.networkBypass) {
+			if (loginServer == null) {
 				Toast.makeText(this, "Please wait until the network is ready.",
 						Toast.LENGTH_LONG).show();
 			} else {
-				State.getLoginServer().send(
-						PacketCreator.login(login_email.getText().toString(),
-								login_pass.getText().toString()));
+				loginServer.send(PacketCreator.login(login_email.getText()
+						.toString(), login_pass.getText().toString()));
 			}
-		} else
-			startEventActivity();
-	}
-
-	private void verifyInformation() {
-		//>5
-		//<=25
-		//user:alpha, digit
-		//pass:needs upper, digit
+		} else {
+			PacketHandlers.login.handlePacket(null, loginServer, loginServer.getContext());
+		}
 	}
 
 	/**
-	 * Generate the XML layout and initialize the email, password, and
-	 * authentication view.
-	 * 
-	 * @author trickyloki3
+	 * Generate the XML layout and initialize the email, password, and error
+	 * view.
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -103,22 +94,22 @@ public class Minimap extends Activity {
 		login_email = (EditText) findViewById(R.id.useremail);
 		login_pass = (EditText) findViewById(R.id.userpass);
 		login_pass_confirm = (EditText) findViewById(R.id.password_confirm);
+		register_error = (TextView) findViewById(R.id.login_error_view);
 	}
 
 	/**
 	 * Connect to login server.
-	 * 
-	 * @author trickyloki3
 	 */
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (State.getLoginServer() != null) {
-			State.getLoginServer().registerContext(this,
-					Network.Activities.LOGIN);
-			if (!State.getLoginServer().isRunning()) {
-				State.getLoginServer().start();
-			}
+		if (loginServer == null || loginServer.isError()) {
+			loginServer = new Network(Type.LOGIN, AppState.getServerAddress(),
+					33620);
+		}
+		loginServer.registerContext(this, Network.Activities.LOGIN);
+		if (!loginServer.isRunning()) {
+			loginServer.start();
 		}
 	}
 
@@ -130,9 +121,10 @@ public class Minimap extends Activity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		if (State.getLoginServer() != null) {
-			State.getLoginServer().unregisterContext(Network.Activities.LOGIN);
-			State.getLoginServer().close();
+		if (loginServer != null) {
+			loginServer.unregisterContext(Network.Activities.LOGIN);
+			loginServer.close();
+			loginServer = null;
 		}
 	}
 
@@ -142,10 +134,6 @@ public class Minimap extends Activity {
 	}
 
 	public void startEventActivity() {
-		State.setEventNumber(1);
-		State.getEvents()[0] = new EventActivity.Event(0, "Test Event",
-				"Provider", new LatLng(28.059891, -82.416183), 17.0f);
-		State.setAdmin(true);
 		Intent i = new Intent(this, EventActivity.class);
 		startActivity(i);
 	}
@@ -160,14 +148,44 @@ public class Minimap extends Activity {
 	public Handler UIupdate = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
+			String error = "";
 			if (msg.what == 0) {
-				Toast.makeText(Minimap.this, "Registration Failed",
-						Toast.LENGTH_LONG).show();
-			} else if (msg.what == 1) {
 				Toast.makeText(Minimap.this, "Registration Successful",
 						Toast.LENGTH_LONG).show();
+			} else if (msg.what == 1) {
+				short status = (short) msg.arg1;
+				if ((status & 0x0002) != 0) {
+					// username length
+					error += "Username must be between 5-25 characters long.\n";
+				}
+				if ((status & 0x0004) != 0) {
+					// username invalid character
+					error += "Username must be composed of only letters and numbers.\n";
+				}
+				if ((status & 0x0008) != 0) {
+					// password length
+					error += "Password must be between 5-25 characters long.\n";
+				}
+				if ((status & 0x0010) != 0) {
+					// password digit
+					error += "Password must contain a digit.\n";
+				}
+				if ((status & 0x0020) != 0) {
+					// password capital
+					error += "Password must contain a capital letter.\n";
+				}
+				if ((status & 0x0040) != 0) {
+					// password special character
+					error += "Password must contain a special character (#$%&'()*+,`-.).\n";
+				}
+				if ((status & 0x0080) != 0) {
+					// username exists
+					error += "Username " + login_email.getText().toString()
+							+ " already exists.\n";
+				}
+				register_error.setText(error);
 			} else if (msg.what == 2) {
-				Toast.makeText(Minimap.this, "Invalid Username or Password",
+				Toast.makeText(Minimap.this, "Invalid username or password.",
 						Toast.LENGTH_LONG).show();
 			} else if (msg.what == 3) {
 				Toast.makeText(

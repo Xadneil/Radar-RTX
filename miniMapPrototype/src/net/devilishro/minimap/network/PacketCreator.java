@@ -1,6 +1,6 @@
 package net.devilishro.minimap.network;
 
-import net.devilishro.minimap.State;
+import net.devilishro.minimap.AppState;
 
 /**
  * Class for creating packets to send to the servers
@@ -37,7 +37,7 @@ public class PacketCreator {
 
 	private static Packet loginImpl(Opcode opcode, String email, String password) {
 		Packet ret = new Packet(4 + email.length() + 4 + password.length() + 2);
-		ret.pack_short((short) opcode.getValue());
+		ret.pack_short(opcode.getValue());
 		ret.pack_string(email);
 		ret.pack_string(password);
 		return ret;
@@ -50,9 +50,9 @@ public class PacketCreator {
 	 * @return the logout packet
 	 */
 	public static Packet logout() {
-		Packet ret = new Packet(2 + 4 + State.getEmail().length());
-		ret.pack_short((short) SendOpcode.LOGOUT.getValue());
-		ret.pack_string(State.getEmail());
+		Packet ret = new Packet(2 + 4 + AppState.getUsername().length());
+		ret.pack_short(SendOpcode.LOGOUT.getValue());
+		ret.pack_string(AppState.getUsername());
 		return ret;
 	}
 
@@ -65,7 +65,7 @@ public class PacketCreator {
 	 */
 	public static Packet selectEvent(int id) {
 		Packet ret = new Packet(2 + 4);
-		ret.pack_short((short) SendOpcode.SELECT_EVENT.getValue());
+		ret.pack_short(SendOpcode.SELECT_EVENT.getValue());
 		// TODO email, authid
 		ret.pack_int(id);
 		return ret;
@@ -81,12 +81,18 @@ public class PacketCreator {
 
 	public static Packet requestEventList() {
 		Packet ret = new Packet(0);
-		ret.pack_short((short) SendOpcode.EVENT_LIST_REQUEST.getValue());
-		// TODO user & auth
+		ret.pack_short(SendOpcode.EVENT_LIST_REQUEST.getValue());
 		return ret;
 	}
 
 	public static Packet leaveEvent(int id) {
+		Packet ret = new Packet(2 + 4);
+		ret.pack_short(SendOpcode.EVENT_LEAVE.getValue());
+		ret.pack_int(id);
+		return ret;
+	}
+
+	public static Packet eventInit() {
 		Packet ret = new Packet(0);
 
 		return ret;

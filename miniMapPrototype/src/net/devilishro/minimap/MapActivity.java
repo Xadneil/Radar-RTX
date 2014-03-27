@@ -63,7 +63,7 @@ public class MapActivity extends Activity {
 		initialize();
 
 		// configure the map
-		Event e = State.getCurrentEvent();
+		Event e = AppState.getCurrentEvent();
 		if (e == null) {
 			finish();
 			return;
@@ -117,7 +117,7 @@ public class MapActivity extends Activity {
 	}
 
 	private void initialize() {
-		synchronized (State.getPositionsLock()) {
+		synchronized (AppState.getPositionsLock()) {
 			/*
 			 * for (int i = 0; i < State.getPositions().length; i++) {
 			 * State.getMarkers()[i] = map.addMarker(new MarkerOptions()
@@ -211,10 +211,10 @@ public class MapActivity extends Activity {
 	}
 
 	private void displayPositions() {
-		synchronized (State.getPositionsLock()) {
-			for (int i = 0; i < State.getPositions().length; i++) {
-				Marker m = State.getMarkers()[i];
-				LatLng position = State.getPositions()[i];
+		synchronized (AppState.getPositionsLock()) {
+			for (int i = 0; i < AppState.getPositions().length; i++) {
+				Marker m = AppState.getMarkers()[i];
+				LatLng position = AppState.getPositions()[i];
 				if (m != null && position != null) {
 					animateMarker(m, position, false);
 				}

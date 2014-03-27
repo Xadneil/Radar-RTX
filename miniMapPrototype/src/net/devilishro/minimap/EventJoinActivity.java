@@ -27,7 +27,7 @@ public class EventJoinActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event_join);
-		((TextView) this.findViewById(R.id.event_join_name)).setText(State
+		((TextView) this.findViewById(R.id.event_join_name)).setText(AppState
 				.getCurrentEvent().title);
 		((Button) this.findViewById(R.id.group_1_button))
 				.setOnClickListener(listener);

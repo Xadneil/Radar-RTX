@@ -57,7 +57,7 @@ public class Player_state extends Activity {
 			}
 
 			if (temp != null)
-				((TextView) convert.findViewById(R.id.textView1)).setText(temp);
+				((TextView) convert.findViewById(R.id.login_error_view)).setText(temp);
 			return convert;
 		}
 

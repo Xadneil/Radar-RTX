@@ -34,16 +34,18 @@ public class EventActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View v, int position,
 				long id) {
-			State.setCurrentEvent(position); // update State
-			// send packet to server
-			State.getEventServer().send(PacketCreator.selectEvent(position));
+			AppState.setCurrentEvent(position); // update State
 
-			if (State.networkBypass) {
+			if (AppState.networkBypass) {
 				HashMap<Network.Activities, Activity> temp = new HashMap<Network.Activities, Activity>(
 						1);
 				temp.put(Network.Activities.EVENT_LIST, EventActivity.this);
 				PacketHandlers.eventChoose.handlePacket(new Packet(0), null,
 						temp);
+			} else {
+				// send packet to server
+				AppState.getEventServer()
+						.send(PacketCreator.selectEvent(position));
 			}
 		}
 	};
@@ -54,7 +56,7 @@ public class EventActivity extends Activity {
 		setContentView(R.layout.activity_event);
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
 		Log.d("EventActivity", "State.getEvents(): "
-				+ (State.getEvents() == null ? "yes" : "no"));
+				+ (AppState.getEvents() == null ? "yes" : "no"));
 		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
 	}
@@ -62,14 +64,15 @@ public class EventActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		State.getEventServer().registerContext(this, Network.Activities.EVENT_LIST);
+		AppState.getEventServer().registerContext(this,
+				Network.Activities.EVENT_LIST);
 
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		State.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
+		AppState.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
 
 	}
 
@@ -80,7 +83,7 @@ public class EventActivity extends Activity {
 		menu.add(0, 1, 1, "FriendForcer");
 		menu.add(0, 2, 2, "Logout");
 		// Admin only options
-		if (State.isAdmin()) {
+		if (AppState.isAdmin()) {
 			menu.add(0, 3, 3, "Event Add");
 			menu.add(0, 4, 4, "Event Notify");
 			menu.add(0, 5, 5, "Player List");
@@ -105,9 +108,9 @@ public class EventActivity extends Activity {
 		}
 		case 2:// logout
 		{
-			State.setLoginOK(false);
-			State.getEventServer().send(PacketCreator.logout());
-			State.setEmail(null);
+			AppState.setLoginOK(false);
+			AppState.getEventServer().send(PacketCreator.logout());
+			AppState.setUsername(null);
 			Intent i = new Intent(this, Minimap.class);
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
@@ -154,7 +157,7 @@ public class EventActivity extends Activity {
 		Context context;
 
 		public EventAdapter(EventActivity act) {
-			super(act, R.id.eventListView, State.getEvents());
+			super(act, R.id.eventListView, AppState.getEvents());
 			context = act;
 		}
 
@@ -177,7 +180,7 @@ public class EventActivity extends Activity {
 			} else {
 				is = (InfoStruct) convertView.getTag();
 			}
-			Event event = State.getEvents()[position];
+			Event event = AppState.getEvents()[position];
 			if (event != null) {
 				is.title.setText(event.title);
 				is.message.setText(event.message);

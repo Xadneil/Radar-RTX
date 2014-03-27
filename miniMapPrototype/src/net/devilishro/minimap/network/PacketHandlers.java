@@ -1,16 +1,18 @@
 package net.devilishro.minimap.network;
 
 import java.lang.reflect.Field;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.Minimap;
-import net.devilishro.minimap.State;
 import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
+import android.os.Message;
 import android.util.SparseArray;
 
 /**
@@ -50,8 +52,8 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
-				HashMap<Network.Activities, Activity> context) {
+		public void handlePacket(Packet packet, final Network n,
+				final HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
 			Minimap activity = (Minimap) context.get(Activities.LOGIN);
 			switch (status) {
@@ -65,12 +67,35 @@ public class PacketHandlers {
 				break;
 			case 0x1DA:
 				// Admin login
-				State.setAdmin(true);
+				AppState.setAdmin(true);
 				// no break intended
 			case 0x1D9:
 				// User login
-				State.setLoginOK(true);
-				activity.startEventActivity(); // go from login screen to event
+				AppState.setLoginOK(true);
+
+				if (!AppState.getEventServer().isRunning()) {
+					AppState.getEventServer().start();
+				}
+				AppState.getEventServer().registerContext(activity,
+						Activities.LOGIN);
+				// This thread sends packets when the event server connection is
+				// ready.
+				new Thread() {
+					public void run() {
+						while (!AppState.getEventServer().isRunning()
+								&& !AppState.getEventServer().isError()) {
+							try {
+								Thread.sleep(10);
+							} catch (InterruptedException e) {
+							}
+						}
+						AppState.getEventServer().send(
+								PacketCreator.eventInit());
+						if (AppState.networkBypass) {
+							eventServerResponse.handlePacket(null, n, context);
+						}
+					}
+				}.start();
 				break;
 			}
 		}
@@ -78,7 +103,6 @@ public class PacketHandlers {
 
 	/**
 	 * Packet Handler for registration responses
-	 * 
 	 */
 	public static PacketHandler register = new PacketHandler() {
 		{
@@ -87,21 +111,19 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
+		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
 			Minimap activity = (Minimap) context.get(Activities.LOGIN);
 
-			// TODO bitmask, make error message area in minimap
-			if (true) { // TODO
-				// Registration failure
+			if (status == 0x0001) {
+				// Registration successful
 				activity.UIupdate.obtainMessage(0).sendToTarget();
+			} else {
+				Message m = activity.UIupdate.obtainMessage(1);
+				m.arg1 = status;
+				m.sendToTarget();
 			}
-			if (true) { // TODO
-				// Registration success
-				activity.UIupdate.obtainMessage(1).sendToTarget();
-			}
-
 		}
 	};
 
@@ -115,21 +137,37 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
+		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			int numEvents = packet.extract_int();
-			State.setEventNumber(numEvents);
-			for (int i = 0; i < numEvents; i++) {
-				int id = packet.extract_int();
-				String title = packet.extract_string();
-				String message = packet.extract_string();
-				short type = packet.extract_short();
-				Event event = new Event();
-				event.id = id;
-				event.title = title;
-				event.message = message;
-				event.type = type;
-				State.getEvents()[i] = event;
+			if (!AppState.networkBypass) {
+				int numEvents = packet.extract_int();
+				AppState.setEventNumber(numEvents);
+				for (int i = 0; i < numEvents; i++) {
+					int id = packet.extract_int();
+					String title = packet.extract_string();
+					String message = packet.extract_string();
+					short type = packet.extract_short();
+					Event event = new Event();
+					event.id = id;
+					event.title = title;
+					event.message = message;
+					event.type = type;
+					AppState.getEvents()[i] = event;
+				}
+			} else {
+				AppState.setEventNumber(1);
+				AppState.getEvents()[0] = new EventActivity.Event(0, "Test Event",
+						"Provider", new LatLng(28.059891, -82.416183), 17.0f);
+				// TODO is this right here?
+				AppState.setAdmin(true);
+			}
+			Minimap activity = (Minimap) context.get(Activities.LOGIN);
+			if (activity != null) {
+				activity.startEventActivity(); // go from login screen to event
+				// release reference for leak prevention
+				n.unregisterContext(Activities.LOGIN);
+			} else {
+				//TODO here
 			}
 		}
 	};
@@ -144,17 +182,23 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
+		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short status = packet.extract_short();
-			if (/* status == some value */true) {
-				// TODO team1, team2
-			}
-			((EventActivity) context.get(Activities.EVENT_LIST))
-					.startJoinActivity();
+			if (!AppState.networkBypass) {
+				short status = packet.extract_short();
+				if (/* status == some value */true) {
+					// TODO team1, team2
+				}
+			} else
+				((EventActivity) context.get(Activities.EVENT_LIST))
+						.startJoinActivity();
+
 		}
 	};
 
+	/**
+	 * Packet Handler for single-event player list updates
+	 */
 	public static PacketHandler playerListUpdate = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -162,19 +206,22 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
+		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
 			short whichTeam = packet.extract_short();
 			// TODO get add/delete
 			int numPlayers = packet.extract_int();
 			for (int i = 0; i < numPlayers; i++) {
 				String playerName = packet.extract_string();
-				// TODO put names in State
+				AppState.getTeamNames(whichTeam)[i] = playerName;
 				// TODO possibly update UI?
 			}
 		}
 	};
 
+	/**
+	 * Packet Handler for event addition responses
+	 */
 	public static PacketHandler eventAddResponse = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -182,10 +229,33 @@ public class PacketHandlers {
 		}
 
 		@Override
-		public void handlePacket(Packet packet, Socket s,
+		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
 			// TODO process status code
+		}
+	};
+
+	/**
+	 * Packet Handler for Event Server initialization response
+	 */
+	public static PacketHandler eventServerResponse = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.EVENT_SERVER_RESPONSE;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Network.Activities, Activity> context) {
+			if (!AppState.networkBypass) {
+				short status = packet.extract_short();
+				// TODO process status code
+			}
+			AppState.getEventServer().send(PacketCreator.requestEventList());
+			if (AppState.networkBypass) {
+				eventList.handlePacket(null, n, context);
+			}
 		}
 	};
 
@@ -250,7 +320,7 @@ public class PacketHandlers {
 		protected Type type;
 		protected Opcode opcode;
 
-		public abstract void handlePacket(Packet packet, Socket s,
-				HashMap<Network.Activities, Activity> context);
+		public abstract void handlePacket(Packet packet, final Network n,
+				final HashMap<Network.Activities, Activity> context);
 	}
 }
