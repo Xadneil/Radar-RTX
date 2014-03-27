@@ -10,7 +10,6 @@ import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.Minimap;
-import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
 import android.os.Message;
 import android.util.SparseArray;
@@ -54,8 +53,14 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, final Network n,
 				final HashMap<Network.Activities, Activity> context) {
-			short status = packet.extract_short();
-			Minimap activity = (Minimap) context.get(Activities.LOGIN);
+			short status;
+
+			if (AppState.networkBypass) {
+				status = 0x1DA;
+			} else {
+				status = packet.extract_short();
+			}
+			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
 			switch (status) {
 			case 0x1D7:
 				// Login failed
@@ -77,8 +82,9 @@ public class PacketHandlers {
 					AppState.getEventServer().start();
 				}
 				AppState.getEventServer().registerContext(activity,
-						Activities.LOGIN);
-				// This thread sends packets when the event server connection is
+						Network.Activities.LOGIN);
+				// This thread sends packets when the event server
+				// connection is
 				// ready.
 				new Thread() {
 					public void run() {
@@ -98,6 +104,7 @@ public class PacketHandlers {
 				}.start();
 				break;
 			}
+
 		}
 	};
 
@@ -113,8 +120,13 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short status = packet.extract_short();
-			Minimap activity = (Minimap) context.get(Activities.LOGIN);
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
 
 			if (status == 0x0001) {
 				// Registration successful
@@ -156,18 +168,20 @@ public class PacketHandlers {
 				}
 			} else {
 				AppState.setEventNumber(1);
-				AppState.getEvents()[0] = new EventActivity.Event(0, "Test Event",
-						"Provider", new LatLng(28.059891, -82.416183), 17.0f);
+				AppState.getEvents()[0] = new EventActivity.Event(0,
+						"Test Event", "Provider", new LatLng(28.059891,
+								-82.416183), 17.0f);
 				// TODO is this right here?
 				AppState.setAdmin(true);
 			}
-			Minimap activity = (Minimap) context.get(Activities.LOGIN);
+			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
 			if (activity != null) {
 				activity.startEventActivity(); // go from login screen to event
 				// release reference for leak prevention
-				n.unregisterContext(Activities.LOGIN);
+				n.unregisterContext(Network.Activities.LOGIN);
 			} else {
-				//TODO here
+				((EventActivity) context.get(Network.Activities.EVENT_LIST))
+						.refresh();
 			}
 		}
 	};
@@ -190,7 +204,7 @@ public class PacketHandlers {
 					// TODO team1, team2
 				}
 			} else
-				((EventActivity) context.get(Activities.EVENT_LIST))
+				((EventActivity) context.get(Network.Activities.EVENT_LIST))
 						.startJoinActivity();
 
 		}

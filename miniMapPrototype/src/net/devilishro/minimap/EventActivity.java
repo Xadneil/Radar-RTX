@@ -50,6 +50,8 @@ public class EventActivity extends Activity {
 		}
 	};
 
+	private EventAdapter adapter;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -57,7 +59,8 @@ public class EventActivity extends Activity {
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
 		Log.d("EventActivity", "State.getEvents(): "
 				+ (AppState.getEvents() == null ? "yes" : "no"));
-		l.setAdapter(new EventAdapter(this));
+		adapter = new EventAdapter(this);
+		l.setAdapter(adapter);
 		l.setOnItemClickListener(clickListener);
 	}
 
@@ -136,6 +139,13 @@ public class EventActivity extends Activity {
 		}
 		}
 		return true;
+	}
+
+	/**
+	 * Causes the event list to refresh and display current data
+	 */
+	public void refresh() {
+		adapter.notifyDataSetChanged();
 	}
 
 	/**

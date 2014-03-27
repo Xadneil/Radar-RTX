@@ -15,8 +15,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
-
 //TODO check internet connectivity
 /**
  * Main app activity. Contains login logic.
@@ -27,7 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 public class Minimap extends Activity {
 	@SuppressWarnings("unused")
 	private final String TAG = "Minimap";
-	private EditText login_email; // login email
+	private EditText login_username; // login email
 	private EditText login_pass; // login password
 	private EditText login_pass_confirm; // login password confirm
 	private TextView register_error;
@@ -53,8 +51,10 @@ public class Minimap extends Activity {
 						View.INVISIBLE);
 				login_pass_confirm.setVisibility(View.INVISIBLE);
 
-				if (!AppState.networkBypass) {
-					loginServer.send(PacketCreator.register(login_email
+				if (AppState.networkBypass) {
+					PacketHandlers.register.handlePacket(null, loginServer, loginServer.getContext());
+				} else {
+					loginServer.send(PacketCreator.register(login_username
 							.getText().toString(), login_pass.getText()
 							.toString()));
 				}
@@ -69,16 +69,16 @@ public class Minimap extends Activity {
 	 * Send login packet
 	 */
 	public void onClickConnectButton(View view) {
-		if (!AppState.networkBypass) {
+		if (AppState.networkBypass) {
+			PacketHandlers.login.handlePacket(null, loginServer, loginServer.getContext());
+		} else {
 			if (loginServer == null) {
 				Toast.makeText(this, "Please wait until the network is ready.",
 						Toast.LENGTH_LONG).show();
 			} else {
-				loginServer.send(PacketCreator.login(login_email.getText()
+				loginServer.send(PacketCreator.login(login_username.getText()
 						.toString(), login_pass.getText().toString()));
 			}
-		} else {
-			PacketHandlers.login.handlePacket(null, loginServer, loginServer.getContext());
 		}
 	}
 
@@ -91,7 +91,7 @@ public class Minimap extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_minimap);
 
-		login_email = (EditText) findViewById(R.id.useremail);
+		login_username = (EditText) findViewById(R.id.useremail);
 		login_pass = (EditText) findViewById(R.id.userpass);
 		login_pass_confirm = (EditText) findViewById(R.id.password_confirm);
 		register_error = (TextView) findViewById(R.id.login_error_view);
@@ -180,7 +180,7 @@ public class Minimap extends Activity {
 				}
 				if ((status & 0x0080) != 0) {
 					// username exists
-					error += "Username " + login_email.getText().toString()
+					error += "Username " + login_username.getText().toString()
 							+ " already exists.\n";
 				}
 				register_error.setText(error);
@@ -190,7 +190,7 @@ public class Minimap extends Activity {
 			} else if (msg.what == 3) {
 				Toast.makeText(
 						Minimap.this,
-						Minimap.this.login_email.getText().toString()
+						Minimap.this.login_username.getText().toString()
 								+ "Is Already Logged In", Toast.LENGTH_LONG)
 						.show();
 			}

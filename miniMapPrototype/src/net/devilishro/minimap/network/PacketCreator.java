@@ -74,13 +74,14 @@ public class PacketCreator {
 	public static Packet addEvent(String name, String team1, String team2,
 			short type, String message) {
 		Packet ret = new Packet(0);
+		ret.pack_short(SendOpcode.EVENT_ADD.getValue());
 		// TODO username(in State)
 		// TODO params
 		return ret;
 	}
 
 	public static Packet requestEventList() {
-		Packet ret = new Packet(0);
+		Packet ret = new Packet(2);
 		ret.pack_short(SendOpcode.EVENT_LIST_REQUEST.getValue());
 		return ret;
 	}
@@ -93,8 +94,8 @@ public class PacketCreator {
 	}
 
 	public static Packet eventInit() {
-		Packet ret = new Packet(0);
-
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.EVENT_SERVER_INIT.getValue());
 		return ret;
 	}
 }
