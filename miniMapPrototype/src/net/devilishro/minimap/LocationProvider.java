@@ -25,6 +25,7 @@ public class LocationProvider extends Thread {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				close();
 			}
 		}
 	}

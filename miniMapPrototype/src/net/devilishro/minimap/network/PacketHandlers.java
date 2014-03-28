@@ -95,6 +95,9 @@ public class PacketHandlers {
 							try {
 								Thread.sleep(10);
 							} catch (InterruptedException e) {
+								throw new RuntimeException(
+										"Was not able to initialize event server",
+										e);
 							}
 						}
 						AppState.getEventServer().send(
@@ -323,7 +326,7 @@ public class PacketHandlers {
 				double lat = packet.extract_double();
 				double lng = packet.extract_double();
 				LatLng ll = new LatLng(lat, lng);
-				synchronized(AppState.getPositionsLock()) {
+				synchronized (AppState.getPositionsLock()) {
 					AppState.getPositions()[playerId] = ll;
 				}
 			}
