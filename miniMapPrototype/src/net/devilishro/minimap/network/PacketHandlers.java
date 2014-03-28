@@ -7,6 +7,7 @@ import java.util.HashMap;
 import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.EventAdd;
 import net.devilishro.minimap.EventJoinActivity;
 import net.devilishro.minimap.MapActivity;
 import net.devilishro.minimap.Minimap;
@@ -243,7 +244,7 @@ public class PacketHandlers {
 			for (int i = 0; i < numPlayers; i++) {
 				String playerName = packet.extract_string();
 				AppState.getTeamNames(whichTeam)[i] = playerName;
-				// TODO possibly update UI?
+				// TODO update UI
 			}
 		}
 	};
@@ -260,13 +261,21 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short status = packet.extract_short();
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			EventAdd activity = (EventAdd) context.get(Network.Activities.EVENT_ADD);
 			if (status == 0x0001) {
 				// event added successfully
-				// TODO
+				activity.getHandler().obtainMessage(0).sendToTarget();
 			} else {
-				// TODO ((EventAdd) context.get(Network.Activities.EVENT_ADD)).
-				// handler
+				// some error occurred
+				Message m = activity.getHandler().obtainMessage(1);
+				m.arg1 = status;
+				m.sendToTarget();
 			}
 		}
 	};

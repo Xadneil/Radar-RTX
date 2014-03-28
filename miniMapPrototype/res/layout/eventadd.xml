@@ -4,27 +4,31 @@
     android:layout_height = "match_parent" >
     
     <TableRow>
+
 	    <TextView
-	        android:id = "@+id/eventname"
-	        android:layout_width = "wrap_content"
-	        android:layout_height = "wrap_content"
-	        android:text = "@string/eventname"
-	        />
+	        android:id="@+id/eventname"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/eventname"
+	        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 	    <EditText
-	        android:id = "@+id/eventedit"
-	        android:inputType = "text"
-	        android:layout_width = "wrap_content"
-	        android:layout_height = "wrap_content"
-	        />
+	        android:id="@+id/eventedit"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:inputType="text" />
+
     </TableRow>
     
     <TableRow>
+
 		<TextView
-		    android:id = "@+id/teamonename"
-		    android:layout_width = "fill_parent"
-	        android:layout_height = "wrap_content"
-	        android:text = "@string/teamonename"
-	        />
+		    android:id="@+id/teamonename"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:text="@string/teamonename"
+		    android:textAppearance="?android:attr/textAppearanceLarge" />
+
 		<EditText
 	        android:id = "@+id/teamoneedit"
 	        android:inputType = "text"
@@ -33,12 +37,14 @@
 	        />
 	</TableRow>
 	<TableRow>
+
 		<TextView
-		    android:id = "@+id/teamtwoname"
-		    android:layout_width = "fill_parent"
-	        android:layout_height = "wrap_content"
-	        android:text = "@string/teamtwoname"
-	        />
+		    android:id="@+id/teamtwoname"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:text="@string/teamtwoname"
+		    android:textAppearance="?android:attr/textAppearanceLarge" />
+
 		<EditText
 	        android:id = "@+id/teamtwoedit"
 	        android:inputType = "text"
@@ -47,12 +53,14 @@
 	        />
 	</TableRow>
 	<TableRow>
+
 		<TextView
-		    android:id = "@+id/eventmaxplayer"
-		    android:layout_width = "fill_parent"
-	        android:layout_height = "wrap_content"
-	        android:text = "@string/eventmaxplayertext"
-	        />
+		    android:id="@+id/eventmaxplayer"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:text="@string/eventmaxplayertext"
+		    android:textAppearance="?android:attr/textAppearanceLarge" />
+
 		<EditText
 	        android:id = "@+id/eventmaxplayeredit"
 	        android:inputType = "text"
@@ -72,4 +80,11 @@
 	    android:layout_height = "wrap_content"
 	    android:text = "@string/eventaddbuttext"
 	    />
+
+	<TextView
+	    android:id="@+id/event_add_error"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:textColor="#ff0000" />
+
 </TableLayout>

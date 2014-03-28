@@ -1,10 +1,14 @@
 package net.devilishro.minimap;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,11 +39,15 @@ public class EventJoinActivity extends Activity {
 		public void handleMessage(Message msg) {
 			if (msg.what == 0) {
 				finish();
+			} else if (msg.what == 1) {
+				team1List.getAdapter();
 			}
 		}
 	};
 
 	private ListView team1List, team2List;
+	private boolean init[] = new boolean[2];
+	private JoinAdapter adapters[] = new JoinAdapter[2];
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +62,6 @@ public class EventJoinActivity extends Activity {
 		team1List = (ListView) findViewById(R.id.team1_list);
 		team2List = (ListView) findViewById(R.id.team2_list);
 
-		// TODO after names initialized
-		// team1List.setAdapter(new ArrayAdapter<String>(this,
-		// android.R.layout.simple_list_item_1, AppState.getTeamNames(0)));
-		// team2List.setAdapter(new ArrayAdapter<String>(this,
-		// android.R.layout.simple_list_item_1, AppState.getTeamNames(1)));
 		if (AppState.getCurrentEvent().team1 != null
 				&& AppState.getCurrentEvent().team2 != null) {
 			((Button) findViewById(R.id.group_1_button)).setText("Join "
@@ -114,6 +117,35 @@ public class EventJoinActivity extends Activity {
 
 	public ListView getTeam2() {
 		return team2List;
+	}
+
+	public void refresh(int team) {
+		ListView view = team == 0 ? team1List : team2List;
+		if (init[team]) {
+			adapters[team].notifyDataSetChanged();
+		} else {
+			adapters[team] = new JoinAdapter(this, AppState.getTeamNames(team));
+			view.setAdapter(adapters[team]);
+			init[team] = true;
+		}
+	}
+
+	private class JoinAdapter extends ArrayAdapter<String> {
+		private List<String> data;
+
+		public JoinAdapter(Context context, String data[]) {
+			super(context, android.R.layout.simple_list_item_1, data);
+		}
+
+		@Override
+		public String getItem(int index) {
+			String datum = data.get(index);
+			if (datum == null) {
+				return "";
+			} else {
+				return datum;
+			}
+		}
 	}
 
 	@Override
