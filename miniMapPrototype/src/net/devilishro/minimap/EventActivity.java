@@ -44,8 +44,8 @@ public class EventActivity extends Activity {
 						temp);
 			} else {
 				// send packet to server
-				AppState.getEventServer()
-						.send(PacketCreator.selectEvent(position));
+				AppState.getEventServer().send(
+						PacketCreator.selectEvent(position));
 			}
 		}
 	};
@@ -69,14 +69,13 @@ public class EventActivity extends Activity {
 		super.onResume();
 		AppState.getEventServer().registerContext(this,
 				Network.Activities.EVENT_LIST);
-
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		AppState.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
-
+		AppState.getEventServer().unregisterContext(
+				Network.Activities.EVENT_LIST);
 	}
 
 	@Override

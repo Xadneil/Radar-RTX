@@ -7,6 +7,8 @@ import java.util.HashMap;
 import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.EventJoinActivity;
+import net.devilishro.minimap.MapActivity;
 import net.devilishro.minimap.Minimap;
 import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
@@ -75,19 +77,19 @@ public class PacketHandlers {
 			case 0x1DA:
 				// Admin login
 				AppState.setAdmin(true);
-				// no break intended
+				// fall-through intended
 			case 0x1D9:
 				// User login
 				AppState.setLoginOK(true);
-
+				// set username in AppState
+				activity.UIupdate.obtainMessage(4).sendToTarget();
 				if (!AppState.getEventServer().isRunning()) {
 					AppState.getEventServer().start();
 				}
 				AppState.getEventServer().registerContext(activity,
 						Network.Activities.LOGIN);
 				// This thread sends packets when the event server
-				// connection is
-				// ready.
+				// connection is ready.
 				new Thread() {
 					public void run() {
 						while (!AppState.getEventServer().isRunning()
@@ -99,6 +101,10 @@ public class PacketHandlers {
 										"Was not able to initialize event server",
 										e);
 							}
+						}
+						if (AppState.getEventServer().isError()) {
+							throw new RuntimeException(
+									"Was not able to initialize event server");
 						}
 						AppState.getEventServer().send(
 								PacketCreator.eventInit());
@@ -176,8 +182,6 @@ public class PacketHandlers {
 				AppState.getEvents()[0] = new EventActivity.Event(0,
 						"Test Event", "Provider", new LatLng(28.059891,
 								-82.416183), 17.0f);
-				// TODO is this right here?
-				AppState.setAdmin(true);
 			}
 			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
 			if (activity != null) {
@@ -304,6 +308,8 @@ public class PacketHandlers {
 				HashMap<Network.Activities, Activity> context) {
 			// packet specs say username is included in this packet, IDK why.
 			// TODO figure out what to do here
+			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
+					.obtainMessage(0).sendToTarget();
 		}
 	};
 
@@ -330,6 +336,9 @@ public class PacketHandlers {
 					AppState.getPositions()[playerId] = ll;
 				}
 			}
+			// tell Map to update
+			((MapActivity) context.get(Network.Activities.MAP)).getHandler()
+					.obtainMessage(0).sendToTarget();
 		}
 	};
 
@@ -400,7 +409,7 @@ public class PacketHandlers {
 	 */
 	public static abstract class PacketHandler {
 		protected Type type;
-		protected Opcode opcode;
+		protected RecvOpcode opcode;
 
 		public abstract void handlePacket(Packet packet, final Network n,
 				final HashMap<Network.Activities, Activity> context);
