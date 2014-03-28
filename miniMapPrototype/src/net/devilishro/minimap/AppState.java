@@ -1,5 +1,8 @@
 package net.devilishro.minimap;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketHandlers.Type;
@@ -24,7 +27,7 @@ public class AppState {
 	// event information
 	private static Event events[];
 	private static int currentEvent = -1;
-	private static String teamNames[][] = new String[2][MAX_PLAYERS];
+	private static ArrayList<HashSet<String>> teamNames = new ArrayList<HashSet<String>>(2);
 
 	// login information
 	private static boolean loginOK = false;
@@ -45,6 +48,9 @@ public class AppState {
 		if (networkBypass) {
 			mapServer = new Network(Type.EVENT, serverAddress, 33630);
 			mapServer.start();
+		}
+		for (int i = 0; i < 2; i++) {
+			teamNames.add(i, new HashSet<String>(MAX_PLAYERS));
 		}
 	}
 
@@ -79,8 +85,8 @@ public class AppState {
 		return names;
 	}
 
-	public static String[] getTeamNames(int team) {
-		return teamNames[team];
+	public static HashSet<String> getTeamNames(int team) {
+		return teamNames.get(team);
 	}
 
 	public static boolean isAdmin() {

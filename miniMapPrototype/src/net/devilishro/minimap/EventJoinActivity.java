@@ -1,14 +1,10 @@
 package net.devilishro.minimap;
 
-import java.util.Arrays;
-import java.util.List;
-
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,7 +23,7 @@ public class EventJoinActivity extends Activity {
 	OnClickListener listener = new OnClickListener() {
 		@Override
 		public void onClick(View arg0) {
-			// TODO join team packet
+			// TODO <j> join team packet
 			Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
 			startActivity(i);
 		}
@@ -46,8 +42,6 @@ public class EventJoinActivity extends Activity {
 	};
 
 	private ListView team1List, team2List;
-	private boolean init[] = new boolean[2];
-	private JoinAdapter adapters[] = new JoinAdapter[2];
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -121,31 +115,9 @@ public class EventJoinActivity extends Activity {
 
 	public void refresh(int team) {
 		ListView view = team == 0 ? team1List : team2List;
-		if (init[team]) {
-			adapters[team].notifyDataSetChanged();
-		} else {
-			adapters[team] = new JoinAdapter(this, AppState.getTeamNames(team));
-			view.setAdapter(adapters[team]);
-			init[team] = true;
-		}
-	}
-
-	private class JoinAdapter extends ArrayAdapter<String> {
-		private List<String> data;
-
-		public JoinAdapter(Context context, String data[]) {
-			super(context, android.R.layout.simple_list_item_1, data);
-		}
-
-		@Override
-		public String getItem(int index) {
-			String datum = data.get(index);
-			if (datum == null) {
-				return "";
-			} else {
-				return datum;
-			}
-		}
+		view.setAdapter(new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, AppState
+						.getTeamNames(team).toArray(new String[0])));
 	}
 
 	@Override

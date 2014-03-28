@@ -210,6 +210,7 @@ public class PacketHandlers {
 				HashMap<Network.Activities, Activity> context) {
 			if (!AppState.networkBypass) {
 				short status = packet.extract_short();
+				// TODO event choose status
 				if (/* status == some value */true) {
 					String team1 = packet.extract_string();
 					String team2 = packet.extract_string();
@@ -238,14 +239,24 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short whichTeam = packet.extract_short();
-			// TODO get add/delete
-			int numPlayers = packet.extract_int();
-			for (int i = 0; i < numPlayers; i++) {
-				String playerName = packet.extract_string();
-				AppState.getTeamNames(whichTeam)[i] = playerName;
-				// TODO update UI
+			short data = packet.extract_short();
+			int whichTeam = (data & 0x0001) != 0 ? 0 : 1;
+			// add players
+			if ((data & 0x0010) != 0) {
+				int numPlayers = packet.extract_int();
+				for (int i = 0; i < numPlayers; i++) {
+					String playerName = packet.extract_string();
+					AppState.getTeamNames(whichTeam).add(playerName);
+				}
+			} else { // delete players
+				int numPlayers = packet.extract_int();
+				for (int i = 0; i < numPlayers; i++) {
+					String playerName = packet.extract_string();
+					AppState.getTeamNames(whichTeam).remove(playerName);
+				}
 			}
+			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN))
+					.refresh(whichTeam);
 		}
 	};
 
@@ -267,7 +278,8 @@ public class PacketHandlers {
 			} else {
 				status = packet.extract_short();
 			}
-			EventAdd activity = (EventAdd) context.get(Network.Activities.EVENT_ADD);
+			EventAdd activity = (EventAdd) context
+					.get(Network.Activities.EVENT_ADD);
 			if (status == 0x0001) {
 				// event added successfully
 				activity.getHandler().obtainMessage(0).sendToTarget();
@@ -294,7 +306,7 @@ public class PacketHandlers {
 				HashMap<Network.Activities, Activity> context) {
 			if (!AppState.networkBypass) {
 				short status = packet.extract_short();
-				// TODO process status code
+				// TODO <j> process status code for event server init
 			}
 			AppState.getEventServer().send(PacketCreator.requestEventList());
 			if (AppState.networkBypass) {
@@ -315,8 +327,6 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			// packet specs say username is included in this packet, IDK why.
-			// TODO figure out what to do here
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
 					.obtainMessage(0).sendToTarget();
 		}
@@ -334,7 +344,7 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
-			// TODO sync with packet specs
+			// TODO <j> <future> sync with packet specs
 			int numUpdates = packet.extract_int();
 			for (int i = 0; i < numUpdates; i++) {
 				int playerId = packet.extract_int();
