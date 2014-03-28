@@ -1,9 +1,10 @@
 package net.devilishro.minimap.network;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashMap;
 
+import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.network.PacketHandlers.PacketHandler;
 import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.app.Activity;
@@ -20,11 +21,11 @@ public class Network extends Thread {
 
 	private final int BUFFER_SIZE = 1024;
 
-	private final InetAddress address;
+	private final String address;
 	private final int port;
-	private final Activity context;
+	private final HashMap<Activities, Activity> context = new HashMap<Activities, Activity>();
 	private final SparseArray<PacketHandler> handlers;
-	private boolean isRunning = false;
+	private boolean isRunning = false, isError = false;
 	private Socket socket;
 	private final String TAG;
 
@@ -39,15 +40,14 @@ public class Network extends Thread {
 	 * @param port
 	 *            the port of the destination
 	 * @param context
-	 *            a reference to an Activity that
+	 *            a group of references to Activities that
 	 *            {@link net.devilishro.minimap.network.PacketHandlers.PacketHandler
 	 *            PacketHandler}s can use
 	 */
-	public Network(Type type, InetAddress address, int port, Activity context) {
+	public Network(Type type, String address, int port) {
 		super(type.name());
 		this.address = address;
 		this.port = port;
-		this.context = context;
 		handlers = PacketHandlers.getHandlers(type);
 		TAG = "Network for " + type.name();
 	}
@@ -62,11 +62,20 @@ public class Network extends Thread {
 		return isRunning;
 	}
 
+	/**
+	 * Returns the error status of this network connection.
+	 * 
+	 * @return <code>true</code> if the connection has errors,
+	 *         <code>false</code> otherwise
+	 */
+	public boolean isError() {
+		return isError;
+	}
+
 	@Override
 	public void run() {
-		isRunning = true;
-
-		if (net.devilishro.minimap.State.networkBypass) {
+		if (AppState.networkBypass) {
+			isRunning = true;
 			return;
 		}
 
@@ -75,24 +84,56 @@ public class Network extends Thread {
 		} catch (IOException e) {
 			Log.e(TAG, "Socket Connection Error", e);
 			isRunning = false;
+			isError = true;
 			throw new RuntimeException(e);
 		}
 
 		byte buffer[] = new byte[BUFFER_SIZE];
 		int bytesRead;
+		isRunning = true;
 		while (isRunning && !socket.isClosed()) {
 			try {
 				bytesRead = socket.getInputStream().read(buffer);
 				if (bytesRead == -1) {
 					close();
+					return;
+				} else if (bytesRead == BUFFER_SIZE) {
+					Log.e(TAG, "Buffer Size Too Small!");
 				}
-				// TODO when Packet is implemented
-				Packet p = new Packet(/* buffer */);
-				handlers.get(p.getOpcode()).handlePacket(p, socket, context);
-			} catch (Exception e) {
+				Packet p = new Packet(buffer, bytesRead, true);
+				try {
+					short opcode = p.extract_short();
+					PacketHandler handler = handlers.get(opcode);
+					handler.handlePacket(p, this, context);
+				} catch (Exception e) {
+					Log.e(TAG, "Error decoding packet", e);
+				}
+			} catch (IOException e) {
 				Log.e(TAG, "Socket Receive Error", e);
 			}
 		}
+	}
+
+	/**
+	 * Makes an Activity available to be used in a PacketHandler
+	 * 
+	 * @param activity
+	 *            reference to the activity
+	 * @param type
+	 *            the type of activity
+	 */
+	public void registerContext(Activity activity, Activities type) {
+		context.put(type, activity);
+	}
+
+	/**
+	 * Makes an Activity unavailable to be used in a PacketHandler
+	 * 
+	 * @param type
+	 *            the type of Activity to remove
+	 */
+	public void unregisterContext(Activities type) {
+		context.remove(type);
 	}
 
 	/**
@@ -102,12 +143,12 @@ public class Network extends Thread {
 	 *            the packet
 	 */
 	public void send(Packet p) {
-		if (net.devilishro.minimap.State.networkBypass) {
+		if (AppState.networkBypass) {
 			return;
 		}
 		try {
 			if (isRunning && !socket.isClosed())
-				socket.getOutputStream().write(p.getPacket());
+				socket.getOutputStream().write(p.get_packet());
 		} catch (IOException e) {
 			Log.e(TAG, "Socket Send Error", e);
 		}
@@ -125,5 +166,13 @@ public class Network extends Thread {
 		} catch (Exception e) {
 			// ignore any IOException or NullPointerException
 		}
+	}
+
+	public HashMap<Activities, Activity> getContext() {
+		return context;
+	}
+
+	public enum Activities {
+		LOGIN, EVENT_LIST, EVENT_ADD, TEAM_JOIN, MAP, NOTIFICATION, REPLAY, PLAYER_LIST;
 	}
 }

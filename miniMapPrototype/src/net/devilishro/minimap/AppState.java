@@ -1,11 +1,8 @@
 package net.devilishro.minimap;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import net.devilishro.minimap.EventActivity.Event;
-
-import android.util.Log;
+import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketHandlers.Type;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -15,12 +12,11 @@ import com.google.android.gms.maps.model.Marker;
  * 
  * @author Daniel
  */
-public class State {
+public class AppState {
 	private static final int MAX_PLAYERS = 8;
 
 	// map information
-	private static String names[] = new String[MAX_PLAYERS]; // don't know if we
-																// will use this
+	private static String names[] = new String[MAX_PLAYERS];
 	private static LatLng positions[] = new LatLng[MAX_PLAYERS];
 	private static Marker markers[] = new Marker[MAX_PLAYERS];
 	private static final Object positionsLock = new Object();
@@ -28,24 +24,47 @@ public class State {
 	// event information
 	private static Event events[];
 	private static int currentEvent = -1;
+	private static String teamNames[][] = new String[2][MAX_PLAYERS];
 
 	// login information
 	private static boolean loginOK = false;
 	private static boolean admin = false;
 
 	// general information
-	private static String authID;
-	public static InetAddress serverAddress;
+	private static String username;
+	private static String serverAddress = "50.62.212.171";
+
+	//Networks
+	private static Network eventServer = new Network(Type.EVENT, serverAddress, 33630);
+	private static Network mapServer;
+
 	public static boolean networkBypass = true;
 
+	static {
+		// may not ever get packet that starts server
+		if (networkBypass) {
+			mapServer = new Network(Type.EVENT, serverAddress, 33630);
+			mapServer.start();
+		}
+	}
+
+	@SuppressWarnings("unused")
 	private static String TAG = "State";
 
-	static {
-		try {
-			serverAddress = InetAddress.getByName("50.62.212.171");
-		} catch (UnknownHostException e) {
-			Log.e(TAG, "Server IP Resolution Error", e);
-		}
+	public static void initMapServer(int port) {
+		mapServer = new Network(Type.MAP, serverAddress, port);
+	}
+
+	public static String getServerAddress() {
+		return serverAddress;
+	}
+
+	public static Network getEventServer() {
+		return eventServer;
+	}
+
+	public static Network getMapServer() {
+		return mapServer;
 	}
 
 	public static boolean isLoginOK() {
@@ -53,19 +72,15 @@ public class State {
 	}
 
 	public static void setLoginOK(boolean loginOK) {
-		State.loginOK = loginOK;
-	}
-
-	public static String getAuthID() {
-		return authID;
-	}
-
-	public static void setAuthID(String authID) {
-		State.authID = authID;
+		AppState.loginOK = loginOK;
 	}
 
 	public static String[] getNames() {
 		return names;
+	}
+
+	public static String[] getTeamNames(int team) {
+		return teamNames[team];
 	}
 
 	public static boolean isAdmin() {
@@ -73,7 +88,7 @@ public class State {
 	}
 
 	public static void setAdmin(boolean admin) {
-		State.admin = admin;
+		AppState.admin = admin;
 	}
 
 	public static Event[] getEvents() {
@@ -112,5 +127,13 @@ public class State {
 
 	public static Marker[] getMarkers() {
 		return markers;
+	}
+
+	public static String getUsername() {
+		return username;
+	}
+
+	public static void setUsername(String username) {
+		AppState.username = username;
 	}
 }

@@ -1,10 +1,11 @@
 package net.devilishro.minimap;
 
+import java.util.HashMap;
+
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.Packet;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
-import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
+// TODO refresh button
 /**
  * Event Activity. Contains the event list and the main menu.
  * 
@@ -32,18 +34,23 @@ public class EventActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View v, int position,
 				long id) {
-			State.setCurrentEvent(position); // update State
-			// send packet to server
-			eventServer.send(PacketCreator.selectEvent(position));
+			AppState.setCurrentEvent(position); // update State
 
-			if (State.networkBypass) {
-				PacketHandlers.eventChoose.handlePacket(new Packet(), null,
-						EventActivity.this);
+			if (AppState.networkBypass) {
+				HashMap<Network.Activities, Activity> temp = new HashMap<Network.Activities, Activity>(
+						1);
+				temp.put(Network.Activities.EVENT_LIST, EventActivity.this);
+				PacketHandlers.eventChoose.handlePacket(new Packet(0), null,
+						temp);
+			} else {
+				// send packet to server
+				AppState.getEventServer()
+						.send(PacketCreator.selectEvent(position));
 			}
 		}
 	};
 
-	public Network eventServer;
+	private EventAdapter adapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,26 +58,25 @@ public class EventActivity extends Activity {
 		setContentView(R.layout.activity_event);
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
 		Log.d("EventActivity", "State.getEvents(): "
-				+ (State.getEvents() == null ? "yes" : "no"));
-		l.setAdapter(new EventAdapter(this));
+				+ (AppState.getEvents() == null ? "yes" : "no"));
+		adapter = new EventAdapter(this);
+		l.setAdapter(adapter);
 		l.setOnItemClickListener(clickListener);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (eventServer == null) { // and it should be null
-			eventServer = new Network(Type.EVENT, State.serverAddress,
-					33601 /* TODO event port */, this);
-			eventServer.start();
-		}
+		AppState.getEventServer().registerContext(this,
+				Network.Activities.EVENT_LIST);
+
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		eventServer.close();
-		eventServer = null;
+		AppState.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
+
 	}
 
 	@Override
@@ -80,7 +86,7 @@ public class EventActivity extends Activity {
 		menu.add(0, 1, 1, "FriendForcer");
 		menu.add(0, 2, 2, "Logout");
 		// Admin only options
-		if (State.isAdmin()) {
+		if (AppState.isAdmin()) {
 			menu.add(0, 3, 3, "Event Add");
 			menu.add(0, 4, 4, "Event Notify");
 			menu.add(0, 5, 5, "Player List");
@@ -105,9 +111,9 @@ public class EventActivity extends Activity {
 		}
 		case 2:// logout
 		{
-			State.setLoginOK(false);
-			State.setAuthID(null);
-			// TODO logout packet, here or in Minimap
+			AppState.setLoginOK(false);
+			AppState.getEventServer().send(PacketCreator.logout());
+			AppState.setUsername(null);
 			Intent i = new Intent(this, Minimap.class);
 			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			startActivity(i);
@@ -136,6 +142,13 @@ public class EventActivity extends Activity {
 	}
 
 	/**
+	 * Causes the event list to refresh and display current data
+	 */
+	public void refresh() {
+		adapter.notifyDataSetChanged();
+	}
+
+	/**
 	 * Proceeds from event screen to join screen. Used by the event handler for
 	 * event choosing.
 	 */
@@ -154,12 +167,12 @@ public class EventActivity extends Activity {
 		Context context;
 
 		public EventAdapter(EventActivity act) {
-			super(act, R.id.eventListView, State.getEvents());
+			super(act, R.id.eventListView, AppState.getEvents());
 			context = act;
 		}
 
 		private static class InfoStruct {
-			public TextView title, provider;
+			public TextView title, message;
 		}
 
 		@Override
@@ -171,16 +184,16 @@ public class EventActivity extends Activity {
 				convertView = View.inflate(context, R.layout.view_event, null);
 				is = new InfoStruct();
 				is.title = (TextView) convertView.findViewById(R.id.event_name);
-				is.provider = (TextView) convertView
-						.findViewById(R.id.event_provider);
+				is.message = (TextView) convertView
+						.findViewById(R.id.event_message);
 				convertView.setTag(is);
 			} else {
 				is = (InfoStruct) convertView.getTag();
 			}
-			Event event = State.getEvents()[position];
+			Event event = AppState.getEvents()[position];
 			if (event != null) {
 				is.title.setText(event.title);
-				is.provider.setText(event.provider);
+				is.message.setText(event.message);
 			}
 			return convertView;
 		}
@@ -192,10 +205,12 @@ public class EventActivity extends Activity {
 	 * @author Daniel
 	 */
 	public static class Event {
-		public String title, provider;
+		public String title, message;
 		public LatLng position;
 		public float zoom;
 		public int id;
+		public short type;
+		public String team1, team2;
 
 		/**
 		 * Class Constructor
@@ -214,10 +229,13 @@ public class EventActivity extends Activity {
 		public Event(int id, String title, String provider, LatLng position,
 				float zoom) {
 			this.title = title;
-			this.provider = provider;
+			this.message = provider;
 			this.position = position;
 			this.zoom = zoom;
 			this.id = id;
+		}
+
+		public Event() {
 		}
 	}
 

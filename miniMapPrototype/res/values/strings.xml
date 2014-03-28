@@ -4,7 +4,7 @@
     <string name="app_name">minimap</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="logintext">Email</string>
+    <string name="logintext">Username</string>
     <string name="loginpass">Password</string>
     <string name="registerbut">Register</string>
     <string name="loginbut">Connect</string>

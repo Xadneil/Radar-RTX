@@ -22,7 +22,7 @@ public class Note_acti extends Activity {
 		setContentView(R.layout.activity_note_acti);
 		listy = new ArrayList<String>();
 		setList();
-		ListView one = (ListView) this.findViewById(R.id.listView1);
+		ListView one = (ListView) this.findViewById(R.id.team1_list);
 		//ListView two = (ListView) this.findViewById(R.id.expandableListView1);
 		one.setAdapter(new CoolAdapter(this, listy));
 		//two.setAdapter(new BitchAdapter(this, listy_one));
@@ -50,7 +50,7 @@ public class Note_acti extends Activity {
 		ArrayList<String> b;
 
 		public CoolAdapter(Note_acti a, ArrayList<String> liste) {
-			super(a, R.id.listView1, liste);
+			super(a, R.id.team1_list, liste);
 			b = liste;
 			context = a;
 		}
@@ -68,7 +68,7 @@ public class Note_acti extends Activity {
 			}
 
 			if (temp != null)
-				((TextView) convert.findViewById(R.id.textView1)).setText(temp);
+				((TextView) convert.findViewById(R.id.login_error_view)).setText(temp);
 			return convert;
 		}
 

@@ -1,5 +1,7 @@
 package net.devilishro.minimap.network;
 
+import net.devilishro.minimap.AppState;
+
 /**
  * Class for creating packets to send to the servers
  * 
@@ -34,9 +36,25 @@ public class PacketCreator {
 	}
 
 	private static Packet loginImpl(Opcode opcode, String email, String password) {
-		Packet ret = new Packet(opcode);
-		ret.addPaddedString(email, 64);
-		ret.addPaddedString(password, 64);
+		Packet ret = new Packet(4 + email.getBytes().length + 4
+				+ password.getBytes().length + 2);
+		ret.pack_short(opcode.getValue());
+		ret.pack_string(email);
+		ret.pack_string(password);
+		return ret;
+	}
+
+	/**
+	 * Creates a logout packet containing the email and auth id
+	 * 
+	 * @param email
+	 * @return the logout packet
+	 */
+	public static Packet logout() {
+		Packet ret = new Packet(
+				2 + 4 + AppState.getUsername().getBytes().length);
+		ret.pack_short(SendOpcode.LOGOUT.getValue());
+		ret.pack_string(AppState.getUsername());
 		return ret;
 	}
 
@@ -45,11 +63,85 @@ public class PacketCreator {
 	 * 
 	 * @param id
 	 *            the event id
-	 * @return the event choosing packet
+	 * @return the event-choosing packet
 	 */
 	public static Packet selectEvent(int id) {
-		Packet ret = new Packet(SendOpcode.SELECT_EVENT);
-		ret.addInt(id);
+		Packet ret = new Packet(
+				2 + 4 + 4 + AppState.getUsername().getBytes().length);
+		ret.pack_short(SendOpcode.SELECT_EVENT.getValue());
+		ret.pack_int(id);
+		ret.pack_string(AppState.getUsername());
+		return ret;
+	}
+
+	/**
+	 * Creates a packet for adding an event
+	 * @param name event title
+	 * @param team1 team 1 name
+	 * @param team2 team 2 name
+	 * @param type type of event
+	 * @param message event details
+	 * @return the event-adding packet
+	 */
+	public static Packet addEvent(String name, String team1, String team2,
+			short type, String message) {
+		Packet ret = new Packet(2 + 4 + name.getBytes().length + 4
+				+ team1.getBytes().length + 4 + team2.getBytes().length + 4 + 4
+				+ message.getBytes().length);
+		ret.pack_short(SendOpcode.EVENT_ADD.getValue());
+		ret.pack_string(name);
+		ret.pack_string(team1);
+		ret.pack_string(team2);
+		ret.pack_int(type);
+		ret.pack_string(message);
+		return ret;
+	}
+
+	/**
+	 * Creates a simple packet that requests the event list
+	 * @return the event list request packet
+	 */
+	public static Packet requestEventList() {
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.EVENT_LIST_REQUEST.getValue());
+		return ret;
+	}
+
+	/**
+	 * Creates a packet for leaving an event
+	 * @param id the event id
+	 * @return the packet for leaving an event
+	 */
+	public static Packet leaveEvent(int id) {
+		Packet ret = new Packet(
+				2 + 4 + 4 + AppState.getUsername().getBytes().length);
+		ret.pack_short(SendOpcode.EVENT_LEAVE.getValue());
+		ret.pack_int(id);
+		ret.pack_string(AppState.getUsername());
+		return ret;
+	}
+
+	/**
+	 * Creates a simple packet for initializing the event server
+	 * @return the event server packet
+	 */
+	public static Packet eventInit() {
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.EVENT_SERVER_INIT.getValue());
+		return ret;
+	}
+
+	/**
+	 * Creates a packet to update the server of your position
+	 * @param lat latitude
+	 * @param lng longitude
+	 * @return the update packet
+	 */
+	public static Packet reportLocation(double lat, double lng) {
+		Packet ret = new Packet(2 + 8 + 8);
+		ret.pack_short(SendOpcode.MAP_STATE.getValue());
+		ret.pack_double(lat);
+		ret.pack_double(lng);
 		return ret;
 	}
 }

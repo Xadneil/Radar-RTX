@@ -1,68 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width = "fill_parent"
-    android:layout_height = "fill_parent"
-    android:orientation = "vertical"
-    android:id = "@+id/RLayout">
-    
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
     <TextView
-        android:id = "@+id/textuseremail"
-        android:layout_width = "fill_parent"
-        android:layout_height = "wrap_content"
-        android:text = "@string/logintext" 
-        android:layout_alignParentTop = "true"
-        android:layout_alignParentLeft = "true"/>
-    
+        android:id="@+id/textuseremail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/logintext" />
+
     <EditText
-        android:id = "@+id/useremail"
-        android:layout_width = "fill_parent"
-        android:layout_height = "wrap_content"
-        android:inputType = "textEmailAddress"
-        android:layout_below = "@+id/textuseremail"
-        android:layout_alignParentRight = "true"/>
-    
+        android:id="@+id/useremail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress" />
+
     <TextView
-        android:id = "@+id/textuserpass"
-        android:layout_width = "fill_parent"
-        android:layout_height = "wrap_content"
-        android:text = "@string/loginpass" 
-        android:layout_below = "@+id/useremail"
-        android:layout_alignParentLeft = "true"/>
-    
+        android:id="@+id/textuserpass"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/loginpass" />
+
     <EditText
-        android:id = "@+id/userpass"
-        android:layout_width = "fill_parent"
-        android:layout_height = "wrap_content"
-        android:inputType = "textEmailAddress"
-        android:layout_below = "@+id/textuserpass"
-        android:layout_alignParentRight = "true"/>
-   
-    <Button
-        android:id = "@+id/registerbut"
-        android:layout_width = "wrap_content"
-        android:layout_height = "wrap_content"
-        android:text = "@string/registerbut"
-        android:onClick="onClickRegisterButton"
-        android:layout_below = "@+id/userpass"
-        android:layout_alignParentLeft = "true"
-        />
-    
-    <Button
-        android:id = "@+id/loginbut"
-        android:layout_width = "wrap_content"
-        android:layout_height = "wrap_content"
-        android:text = "@string/loginbut"
-        android:onClick="onClickConnectButton"
-        android:layout_below = "@+id/userpass"
-        android:layout_alignParentRight = "true"
-        />
-    
+        android:id="@+id/userpass"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+		android:inputType="textPassword" />
+
     <TextView
-        android:id = "@+id/authid"
-        android:layout_width = "fill_parent"
-        android:layout_height = "wrap_content"
-        android:layout_below = "@+id/registerbut"
-        android:layout_centerHorizontal = "true"
-        />
- </RelativeLayout>
+        android:id="@+id/password_confirm_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Confirm Password"
+        android:visibility="invisible" />
+
+    <EditText
+        android:id="@+id/password_confirm"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPassword"
+        android:visibility="invisible" />
+
+    <RelativeLayout
+        android:id="@+id/RelativeLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/registerbut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:onClick="onClickRegisterButton"
+            android:text="@string/registerbut" />
+
+        <Button
+            android:id="@+id/loginbut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:onClick="onClickConnectButton"
+            android:text="@string/loginbut" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/login_error_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+</LinearLayout>
