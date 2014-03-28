@@ -210,6 +210,7 @@ public class EventActivity extends Activity {
 		public float zoom;
 		public int id;
 		public short type;
+		public String team1, team2;
 
 		/**
 		 * Class Constructor

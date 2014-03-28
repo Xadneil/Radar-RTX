@@ -40,11 +40,19 @@ public class AppState {
 
 	public static boolean networkBypass = true;
 
+	static {
+		// may not ever get packet that starts server
+		if (networkBypass) {
+			mapServer = new Network(Type.EVENT, serverAddress, 33630);
+			mapServer.start();
+		}
+	}
+
 	@SuppressWarnings("unused")
 	private static String TAG = "State";
 
 	public static void initMapServer(int port) {
-		//mapServer = new Network(Type.MAP, serverAddress, port);
+		mapServer = new Network(Type.MAP, serverAddress, port);
 	}
 
 	public static String getServerAddress() {

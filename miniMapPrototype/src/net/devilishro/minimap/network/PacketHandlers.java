@@ -4,15 +4,16 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.Minimap;
+import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
 import android.os.Message;
 import android.util.SparseArray;
+
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Defines and aggregates
@@ -23,18 +24,19 @@ import android.util.SparseArray;
  */
 public class PacketHandlers {
 
+	// keeps track of the number of handlers in each handler type
 	private static int numHandlers[] = new int[Type.values().length];
 	private static ArrayList<SparseArray<PacketHandler>> handlers = new ArrayList<SparseArray<PacketHandler>>(
 			Type.values().length);
 
 	/**
 	 * The type of network connection. Used for grouping packet handlers by
-	 * destination and naming network connections.
+	 * source and naming network connections.
 	 * 
 	 * @author Daniel
 	 */
 	public enum Type {
-		LOGIN, EVENT, /* MAP */; // Disable unused type(s) for safety
+		LOGIN, EVENT, MAP;
 	}
 
 	// =========================================================================
@@ -157,8 +159,8 @@ public class PacketHandlers {
 				for (int i = 0; i < numEvents; i++) {
 					int id = packet.extract_int();
 					String title = packet.extract_string();
-					String message = packet.extract_string();
 					short type = packet.extract_short();
+					String message = packet.extract_string();
 					Event event = new Event();
 					event.id = id;
 					event.title = title;
@@ -201,7 +203,13 @@ public class PacketHandlers {
 			if (!AppState.networkBypass) {
 				short status = packet.extract_short();
 				if (/* status == some value */true) {
-					// TODO team1, team2
+					String team1 = packet.extract_string();
+					String team2 = packet.extract_string();
+					AppState.getCurrentEvent().team1 = team1;
+					AppState.getCurrentEvent().team2 = team2;
+					// activity transition
+					((EventActivity) context.get(Network.Activities.EVENT_LIST))
+							.startJoinActivity();
 				}
 			} else
 				((EventActivity) context.get(Network.Activities.EVENT_LIST))
@@ -246,7 +254,13 @@ public class PacketHandlers {
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
 			short status = packet.extract_short();
-			// TODO process status code
+			if (status == 0x0001) {
+				// event added successfully
+				// TODO
+			} else {
+				// TODO ((EventAdd) context.get(Network.Activities.EVENT_ADD)).
+				// handler
+			}
 		}
 	};
 
@@ -273,6 +287,49 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for Event Server initialization response
+	 */
+	public static PacketHandler eventLeave = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.EVENT_LEAVE;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Network.Activities, Activity> context) {
+			// packet specs say username is included in this packet, IDK why.
+			// TODO figure out what to do here
+		}
+	};
+
+	/**
+	 * Packet Handler for receiving updated positions on the map
+	 */
+	public static PacketHandler mapPositions = new PacketHandler() {
+		{
+			type = Type.MAP;
+			opcode = RecvOpcode.MAP_UPDATE;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			// TODO sync with packet specs
+			int numUpdates = packet.extract_int();
+			for (int i = 0; i < numUpdates; i++) {
+				int playerId = packet.extract_int();
+				double lat = packet.extract_double();
+				double lng = packet.extract_double();
+				LatLng ll = new LatLng(lat, lng);
+				synchronized(AppState.getPositionsLock()) {
+					AppState.getPositions()[playerId] = ll;
+				}
+			}
+		}
+	};
+
 	// =========================================================================
 	// end packet handlers
 	// =========================================================================
@@ -281,10 +338,14 @@ public class PacketHandlers {
 	 * Class Initializer. Should happen after static field initialization
 	 */
 	static {
+		// get all fields in this class
 		Field fields[] = PacketHandlers.class.getDeclaredFields();
+		// loop through the fields
 		for (int i = 0; i < fields.length; i++) {
 			try {
 				Object field = fields[i].get(null);
+				// if the field is a PacketHandler, increment its corresponding
+				// numHandlers
 				if (field instanceof PacketHandler) {
 					PacketHandler handler = (PacketHandler) field;
 					numHandlers[handler.type.ordinal()]++;
@@ -294,13 +355,17 @@ public class PacketHandlers {
 			} catch (NullPointerException e) {
 			}
 		}
+		// initialize handlers with the numHandlers for each type
 		for (int type = 0; type < Type.values().length; type++) {
 			handlers.add(new SparseArray<PacketHandler>(numHandlers[type]));
 		}
 
+		// go through the fields again
 		for (int i = 0; i < fields.length; i++) {
 			try {
 				Object field = fields[i].get(null);
+				// if the field is a PacketHandler, add it to its corresponding
+				// type list
 				if (field instanceof PacketHandler) {
 					PacketHandler handler = (PacketHandler) field;
 					handlers.get(handler.type.ordinal()).put(

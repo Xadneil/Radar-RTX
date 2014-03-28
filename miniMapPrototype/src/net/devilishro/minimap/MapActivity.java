@@ -28,6 +28,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 //TODO re-lock map fragment movement in layout xml
 /**
@@ -118,12 +119,15 @@ public class MapActivity extends Activity {
 
 	private void initialize() {
 		synchronized (AppState.getPositionsLock()) {
-			/*
-			 * for (int i = 0; i < State.getPositions().length; i++) {
-			 * State.getMarkers()[i] = map.addMarker(new MarkerOptions()
-			 * .snippet(State.getNames()[i]).position(
-			 * State.getPositions()[i])); }
-			 */
+			for (int i = 0; i < AppState.getPositions().length; i++) {
+				if (AppState.getNames()[i] != null
+						&& AppState.getPositions()[i] != null) {
+					AppState.getMarkers()[i] = map
+							.addMarker(new MarkerOptions().snippet(
+									AppState.getNames()[i]).position(
+									AppState.getPositions()[i]));
+				}
+			}
 		}
 	}
 
@@ -155,7 +159,7 @@ public class MapActivity extends Activity {
 	@Override
 	protected void onPause() {
 		if (provider != null) {
-			provider.finish();
+			provider.close();
 			provider = null;
 		}
 		super.onPause();
@@ -181,14 +185,14 @@ public class MapActivity extends Activity {
 				GooglePlayServicesUtil.getErrorDialog(gPlayStatus, this,
 						GOOGLE_PLAY_SERVICES).show();
 			}
-			Fragment temp = getFragmentManager().findFragmentById(R.id.map);
-			if (temp == null) {
+			Fragment fragment = getFragmentManager().findFragmentById(R.id.map);
+			if (fragment == null) {
 				Toast.makeText(this, "The map failed to load.",
 						Toast.LENGTH_LONG).show();
 				Log.e(TAG, "Fragment null");
 				return false;
 			}
-			map = ((MapFragment) temp).getMap();
+			map = ((MapFragment) fragment).getMap();
 			// Check if we were successful in obtaining the map.
 			if (map == null) {
 				Toast.makeText(this, "The map failed to load.",
