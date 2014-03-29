@@ -66,21 +66,25 @@ public class PacketCreator {
 	 * @return the event-choosing packet
 	 */
 	public static Packet selectEvent(int id) {
-		Packet ret = new Packet(
-				2 + 4 + 4 + AppState.getUsername().getBytes().length);
+		Packet ret = new Packet(2 + 4);
 		ret.pack_short(SendOpcode.SELECT_EVENT.getValue());
 		ret.pack_int(id);
-		ret.pack_string(AppState.getUsername());
 		return ret;
 	}
 
 	/**
 	 * Creates a packet for adding an event
-	 * @param name event title
-	 * @param team1 team 1 name
-	 * @param team2 team 2 name
-	 * @param type type of event
-	 * @param message event details
+	 * 
+	 * @param name
+	 *            event title
+	 * @param team1
+	 *            team 1 name
+	 * @param team2
+	 *            team 2 name
+	 * @param type
+	 *            type of event
+	 * @param message
+	 *            event details
 	 * @return the event-adding packet
 	 */
 	public static Packet addEvent(String name, String team1, String team2,
@@ -99,6 +103,7 @@ public class PacketCreator {
 
 	/**
 	 * Creates a simple packet that requests the event list
+	 * 
 	 * @return the event list request packet
 	 */
 	public static Packet requestEventList() {
@@ -109,32 +114,36 @@ public class PacketCreator {
 
 	/**
 	 * Creates a packet for leaving an event
-	 * @param id the event id
+	 * 
+	 * @param id
+	 *            the event id
 	 * @return the packet for leaving an event
 	 */
 	public static Packet leaveEvent(int id) {
-		Packet ret = new Packet(
-				2 + 4 + 4 + AppState.getUsername().getBytes().length);
+		Packet ret = new Packet(2 + 4);
 		ret.pack_short(SendOpcode.EVENT_LEAVE.getValue());
 		ret.pack_int(id);
-		ret.pack_string(AppState.getUsername());
 		return ret;
 	}
 
 	/**
 	 * Creates a simple packet for initializing the event server
+	 * 
 	 * @return the event server packet
 	 */
-	public static Packet eventInit() {
+	public static Packet eventConnect() {
 		Packet ret = new Packet(2);
-		ret.pack_short(SendOpcode.EVENT_SERVER_INIT.getValue());
+		ret.pack_short(SendOpcode.EVENT_SERVER_CONNECT.getValue());
 		return ret;
 	}
 
 	/**
 	 * Creates a packet to update the server of your position
-	 * @param lat latitude
-	 * @param lng longitude
+	 * 
+	 * @param lat
+	 *            latitude
+	 * @param lng
+	 *            longitude
 	 * @return the update packet
 	 */
 	public static Packet reportLocation(double lat, double lng) {

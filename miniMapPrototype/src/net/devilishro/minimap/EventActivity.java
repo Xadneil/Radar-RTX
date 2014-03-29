@@ -20,6 +20,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -154,6 +155,10 @@ public class EventActivity extends Activity {
 	public void startJoinActivity() {
 		Intent i = new Intent(EventActivity.this, EventJoinActivity.class);
 		startActivity(i);
+	}
+
+	public void eventFull() {
+		Toast.makeText(this, "This event is full.", Toast.LENGTH_LONG).show();
 	}
 
 	/**

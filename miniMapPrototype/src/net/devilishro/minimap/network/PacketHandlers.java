@@ -108,7 +108,7 @@ public class PacketHandlers {
 									"Was not able to initialize event server");
 						}
 						AppState.getEventServer().send(
-								PacketCreator.eventInit());
+								PacketCreator.eventConnect());
 						if (AppState.networkBypass) {
 							eventServerResponse.handlePacket(null, n, context);
 						}
@@ -184,9 +184,10 @@ public class PacketHandlers {
 						"Test Event", "Provider", new LatLng(28.059891,
 								-82.416183), 17.0f);
 			}
-			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
-			if (activity != null) {
-				activity.startEventActivity(); // go from login screen to event
+			Minimap minimap = (Minimap) context.get(Network.Activities.LOGIN);
+			// this is the first time this handler has been used since login
+			if (minimap != null) {
+				minimap.startEventActivity(); // go from login screen to event
 				// release reference for leak prevention
 				n.unregisterContext(Network.Activities.LOGIN);
 			} else {
@@ -208,22 +209,22 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			if (!AppState.networkBypass) {
-				short status = packet.extract_short();
-				// TODO event choose status
-				if (/* status == some value */true) {
-					String team1 = packet.extract_string();
-					String team2 = packet.extract_string();
-					AppState.getCurrentEvent().team1 = team1;
-					AppState.getCurrentEvent().team2 = team2;
-					// activity transition
-					((EventActivity) context.get(Network.Activities.EVENT_LIST))
-							.startJoinActivity();
-				}
-			} else
-				((EventActivity) context.get(Network.Activities.EVENT_LIST))
-						.startJoinActivity();
-
+			EventActivity activity = (EventActivity) context
+					.get(Network.Activities.EVENT_LIST);
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+				String team1 = packet.extract_string();
+				String team2 = packet.extract_string();
+				AppState.getCurrentEvent().team1 = team1;
+				AppState.getCurrentEvent().team2 = team2;
+			}
+			if (status != 0x0001) {
+				activity.eventFull();
+			}
+			activity.startJoinActivity();
 		}
 	};
 
@@ -304,13 +305,21 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			if (!AppState.networkBypass) {
-				short status = packet.extract_short();
-				// TODO <j> process status code for event server init
-			}
-			AppState.getEventServer().send(PacketCreator.requestEventList());
+			short status;
 			if (AppState.networkBypass) {
-				eventList.handlePacket(null, n, context);
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			if (status == 0x0001) {
+				AppState.getEventServer()
+						.send(PacketCreator.requestEventList());
+				if (AppState.networkBypass) {
+					eventList.handlePacket(null, n, context);
+				}
+			} else {
+				throw new RuntimeException(
+						"Event Server Connection Error (status:" + status + ")");
 			}
 		}
 	};
