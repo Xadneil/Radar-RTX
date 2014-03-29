@@ -100,16 +100,48 @@ public class Network extends Thread {
 				} else if (bytesRead == BUFFER_SIZE) {
 					Log.e(TAG, "Buffer Size Too Small!");
 				}
-				Packet p = new Packet(buffer, bytesRead, true);
+				byte[] smaller = new byte[bytesRead];
+				System.arraycopy(buffer, 0, smaller, 0, bytesRead);
+				Packet p = new Packet(smaller, bytesRead, true);
 				try {
 					short opcode = p.extract_short();
 					PacketHandler handler = handlers.get(opcode);
-					handler.handlePacket(p, this, context);
+					// spin off a new thread to deal with handling
+					new PacketThread(handler, p, this, context).start();
 				} catch (Exception e) {
 					Log.e(TAG, "Error decoding packet", e);
 				}
 			} catch (IOException e) {
 				Log.e(TAG, "Socket Receive Error", e);
+			}
+			if (Thread.interrupted()) {
+				close();
+			}
+		}
+	}
+
+	private class PacketThread extends Thread {
+
+		private final Packet packet;
+		private final Network network;
+		private final HashMap<Activities, Activity> context;
+		private final PacketHandler handler;
+
+		public PacketThread(PacketHandler handler, Packet packet,
+				Network network, HashMap<Activities, Activity> context) {
+			super(handler.opcode.name());
+			this.handler = handler;
+			this.packet = packet;
+			this.network = network;
+			this.context = context;
+		}
+
+		@Override
+		public void run() {
+			try {
+			handler.handlePacket(packet, network, context);
+			} catch (Exception e) {
+				Log.e(TAG, "Error handling packet " + getName(), e);
 			}
 		}
 	}
@@ -166,6 +198,7 @@ public class Network extends Thread {
 		} catch (Exception e) {
 			// ignore any IOException or NullPointerException
 		}
+		context.clear();
 	}
 
 	public HashMap<Activities, Activity> getContext() {

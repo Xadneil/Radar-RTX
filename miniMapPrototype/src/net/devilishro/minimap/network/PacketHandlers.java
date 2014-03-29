@@ -7,6 +7,9 @@ import java.util.HashMap;
 import net.devilishro.minimap.AppState;
 import net.devilishro.minimap.EventActivity;
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.EventAdd;
+import net.devilishro.minimap.EventJoinActivity;
+import net.devilishro.minimap.MapActivity;
 import net.devilishro.minimap.Minimap;
 import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
@@ -75,19 +78,19 @@ public class PacketHandlers {
 			case 0x1DA:
 				// Admin login
 				AppState.setAdmin(true);
-				// no break intended
+				// fall-through intended
 			case 0x1D9:
 				// User login
 				AppState.setLoginOK(true);
-
+				// set username in AppState
+				activity.UIupdate.obtainMessage(4).sendToTarget();
 				if (!AppState.getEventServer().isRunning()) {
 					AppState.getEventServer().start();
 				}
 				AppState.getEventServer().registerContext(activity,
 						Network.Activities.LOGIN);
 				// This thread sends packets when the event server
-				// connection is
-				// ready.
+				// connection is ready.
 				new Thread() {
 					public void run() {
 						while (!AppState.getEventServer().isRunning()
@@ -95,10 +98,17 @@ public class PacketHandlers {
 							try {
 								Thread.sleep(10);
 							} catch (InterruptedException e) {
+								throw new RuntimeException(
+										"Was not able to initialize event server",
+										e);
 							}
 						}
+						if (AppState.getEventServer().isError()) {
+							throw new RuntimeException(
+									"Was not able to initialize event server");
+						}
 						AppState.getEventServer().send(
-								PacketCreator.eventInit());
+								PacketCreator.eventConnect());
 						if (AppState.networkBypass) {
 							eventServerResponse.handlePacket(null, n, context);
 						}
@@ -173,12 +183,11 @@ public class PacketHandlers {
 				AppState.getEvents()[0] = new EventActivity.Event(0,
 						"Test Event", "Provider", new LatLng(28.059891,
 								-82.416183), 17.0f);
-				// TODO is this right here?
-				AppState.setAdmin(true);
 			}
-			Minimap activity = (Minimap) context.get(Network.Activities.LOGIN);
-			if (activity != null) {
-				activity.startEventActivity(); // go from login screen to event
+			Minimap minimap = (Minimap) context.get(Network.Activities.LOGIN);
+			// this is the first time this handler has been used since login
+			if (minimap != null) {
+				minimap.startEventActivity(); // go from login screen to event
 				// release reference for leak prevention
 				n.unregisterContext(Network.Activities.LOGIN);
 			} else {
@@ -200,21 +209,22 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			if (!AppState.networkBypass) {
-				short status = packet.extract_short();
-				if (/* status == some value */true) {
-					String team1 = packet.extract_string();
-					String team2 = packet.extract_string();
-					AppState.getCurrentEvent().team1 = team1;
-					AppState.getCurrentEvent().team2 = team2;
-					// activity transition
-					((EventActivity) context.get(Network.Activities.EVENT_LIST))
-							.startJoinActivity();
-				}
-			} else
-				((EventActivity) context.get(Network.Activities.EVENT_LIST))
-						.startJoinActivity();
-
+			EventActivity activity = (EventActivity) context
+					.get(Network.Activities.EVENT_LIST);
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+				String team1 = packet.extract_string();
+				String team2 = packet.extract_string();
+				AppState.getCurrentEvent().team1 = team1;
+				AppState.getCurrentEvent().team2 = team2;
+			}
+			if (status != 0x0001) {
+				activity.eventFull();
+			}
+			activity.startJoinActivity();
 		}
 	};
 
@@ -230,14 +240,24 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short whichTeam = packet.extract_short();
-			// TODO get add/delete
-			int numPlayers = packet.extract_int();
-			for (int i = 0; i < numPlayers; i++) {
-				String playerName = packet.extract_string();
-				AppState.getTeamNames(whichTeam)[i] = playerName;
-				// TODO possibly update UI?
+			short data = packet.extract_short();
+			int whichTeam = (data & 0x0001) != 0 ? 0 : 1;
+			// add players
+			if ((data & 0x0010) != 0) {
+				int numPlayers = packet.extract_int();
+				for (int i = 0; i < numPlayers; i++) {
+					String playerName = packet.extract_string();
+					AppState.getTeamNames(whichTeam).add(playerName);
+				}
+			} else { // delete players
+				int numPlayers = packet.extract_int();
+				for (int i = 0; i < numPlayers; i++) {
+					String playerName = packet.extract_string();
+					AppState.getTeamNames(whichTeam).remove(playerName);
+				}
 			}
+			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN))
+					.refresh(whichTeam);
 		}
 	};
 
@@ -253,13 +273,22 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			short status = packet.extract_short();
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			EventAdd activity = (EventAdd) context
+					.get(Network.Activities.EVENT_ADD);
 			if (status == 0x0001) {
 				// event added successfully
-				// TODO
+				activity.getHandler().obtainMessage(0).sendToTarget();
 			} else {
-				// TODO ((EventAdd) context.get(Network.Activities.EVENT_ADD)).
-				// handler
+				// some error occurred
+				Message m = activity.getHandler().obtainMessage(1);
+				m.arg1 = status;
+				m.sendToTarget();
 			}
 		}
 	};
@@ -276,13 +305,21 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			if (!AppState.networkBypass) {
-				short status = packet.extract_short();
-				// TODO process status code
-			}
-			AppState.getEventServer().send(PacketCreator.requestEventList());
+			short status;
 			if (AppState.networkBypass) {
-				eventList.handlePacket(null, n, context);
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			if (status == 0x0001) {
+				AppState.getEventServer()
+						.send(PacketCreator.requestEventList());
+				if (AppState.networkBypass) {
+					eventList.handlePacket(null, n, context);
+				}
+			} else {
+				throw new RuntimeException(
+						"Event Server Connection Error (status:" + status + ")");
 			}
 		}
 	};
@@ -299,8 +336,8 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
-			// packet specs say username is included in this packet, IDK why.
-			// TODO figure out what to do here
+			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
+					.obtainMessage(0).sendToTarget();
 		}
 	};
 
@@ -316,17 +353,20 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
-			// TODO sync with packet specs
+			// TODO <j> <future> sync with packet specs
 			int numUpdates = packet.extract_int();
 			for (int i = 0; i < numUpdates; i++) {
 				int playerId = packet.extract_int();
 				double lat = packet.extract_double();
 				double lng = packet.extract_double();
 				LatLng ll = new LatLng(lat, lng);
-				synchronized(AppState.getPositionsLock()) {
+				synchronized (AppState.getPositionsLock()) {
 					AppState.getPositions()[playerId] = ll;
 				}
 			}
+			// tell Map to update
+			((MapActivity) context.get(Network.Activities.MAP)).getHandler()
+					.obtainMessage(0).sendToTarget();
 		}
 	};
 
@@ -397,7 +437,7 @@ public class PacketHandlers {
 	 */
 	public static abstract class PacketHandler {
 		protected Type type;
-		protected Opcode opcode;
+		protected RecvOpcode opcode;
 
 		public abstract void handlePacket(Packet packet, final Network n,
 				final HashMap<Network.Activities, Activity> context);

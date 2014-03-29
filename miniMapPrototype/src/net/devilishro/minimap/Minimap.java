@@ -52,7 +52,8 @@ public class Minimap extends Activity {
 				login_pass_confirm.setVisibility(View.INVISIBLE);
 
 				if (AppState.networkBypass) {
-					PacketHandlers.register.handlePacket(null, loginServer, loginServer.getContext());
+					PacketHandlers.register.handlePacket(null, loginServer,
+							loginServer.getContext());
 				} else {
 					loginServer.send(PacketCreator.register(login_username
 							.getText().toString(), login_pass.getText()
@@ -70,7 +71,8 @@ public class Minimap extends Activity {
 	 */
 	public void onClickConnectButton(View view) {
 		if (AppState.networkBypass) {
-			PacketHandlers.login.handlePacket(null, loginServer, loginServer.getContext());
+			PacketHandlers.login.handlePacket(null, loginServer,
+					loginServer.getContext());
 		} else {
 			if (loginServer == null) {
 				Toast.makeText(this, "Please wait until the network is ready.",
@@ -193,6 +195,8 @@ public class Minimap extends Activity {
 						Minimap.this.login_username.getText().toString()
 								+ "Is Already Logged In", Toast.LENGTH_LONG)
 						.show();
+			} else if (msg.what == 4) {
+				AppState.setUsername(login_username.getText().toString());
 			}
 		}
 	};

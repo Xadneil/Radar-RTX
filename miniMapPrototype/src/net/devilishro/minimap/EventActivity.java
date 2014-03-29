@@ -20,6 +20,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -44,8 +45,8 @@ public class EventActivity extends Activity {
 						temp);
 			} else {
 				// send packet to server
-				AppState.getEventServer()
-						.send(PacketCreator.selectEvent(position));
+				AppState.getEventServer().send(
+						PacketCreator.selectEvent(position));
 			}
 		}
 	};
@@ -69,14 +70,13 @@ public class EventActivity extends Activity {
 		super.onResume();
 		AppState.getEventServer().registerContext(this,
 				Network.Activities.EVENT_LIST);
-
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		AppState.getEventServer().unregisterContext(Network.Activities.EVENT_LIST);
-
+		AppState.getEventServer().unregisterContext(
+				Network.Activities.EVENT_LIST);
 	}
 
 	@Override
@@ -155,6 +155,10 @@ public class EventActivity extends Activity {
 	public void startJoinActivity() {
 		Intent i = new Intent(EventActivity.this, EventJoinActivity.class);
 		startActivity(i);
+	}
+
+	public void eventFull() {
+		Toast.makeText(this, "This event is full.", Toast.LENGTH_LONG).show();
 	}
 
 	/**

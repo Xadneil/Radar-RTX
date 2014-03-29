@@ -2,9 +2,19 @@ package net.devilishro.minimap;
 
 import net.devilishro.minimap.network.PacketCreator;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
+// TODO possibly replace with ScheduledThreadPoolExecutor
+/**
+ * A location update thread. Sends the user's location to the map server every
+ * interval
+ * 
+ * @author Daniel
+ */
 public class LocationProvider extends Thread {
+	private static final int INTERVAL = 1000; // send location every INTERVAL ms
 	private boolean isRunning = false;
 	private final MapActivity act;
 
@@ -22,9 +32,10 @@ public class LocationProvider extends Thread {
 								ll.longitude));
 			}
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(INTERVAL);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				Log.w("LocationProvider", "Exception reporting location", e);
+				close();
 			}
 		}
 	}

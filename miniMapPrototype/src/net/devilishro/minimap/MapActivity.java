@@ -1,6 +1,7 @@
 package net.devilishro.minimap;
 
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.network.Network;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
@@ -38,7 +39,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
  */
 public class MapActivity extends Activity {
 	private GoogleMap map;
-	private static Handler handler;
+	private Handler handler;
 	private LocationProvider provider;
 	private LocationClient location;
 	private boolean isGooglePlayConnected = false;
@@ -87,13 +88,13 @@ public class MapActivity extends Activity {
 					@Override
 					public void onDisconnected() {
 						isGooglePlayConnected = false;
-						Log.d(TAG, "Google Play Services connected.");
+						Log.d(TAG, "Google Play Services disconnected.");
 					}
 
 					@Override
 					public void onConnected(Bundle arg0) {
 						isGooglePlayConnected = true;
-						Log.d(TAG, "Google Play Services disconnected.");
+						Log.d(TAG, "Google Play Services connected.");
 					}
 				}, new GooglePlayServicesClient.OnConnectionFailedListener() {
 
@@ -113,7 +114,7 @@ public class MapActivity extends Activity {
 	 * 
 	 * @return the handler
 	 */
-	public static Handler getHandler() {
+	public Handler getHandler() {
 		return handler;
 	}
 
@@ -131,6 +132,10 @@ public class MapActivity extends Activity {
 		}
 	}
 
+	/**
+	 * Gets the last location measured
+	 * @return a LatLng for the location
+	 */
 	public LatLng getLocation() {
 		if (!isGooglePlayConnected)
 			return null;
@@ -147,6 +152,7 @@ public class MapActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		AppState.getMapServer().registerContext(this, Network.Activities.MAP);
 		if (provider != null && !provider.isRunning()) {
 			provider.start();
 		} else if (provider == null) {
@@ -158,17 +164,24 @@ public class MapActivity extends Activity {
 
 	@Override
 	protected void onPause() {
+		AppState.getMapServer().unregisterContext(Network.Activities.MAP);
 		if (provider != null) {
 			provider.close();
 			provider = null;
 		}
-		super.onPause();
 		location.disconnect();
+		super.onPause();
 	}
 
 	@Override
 	protected void onDestroy() {
-
+		// in case finish() is called
+		AppState.getMapServer().unregisterContext(Network.Activities.MAP);
+		if (provider != null) {
+			provider.close();
+			provider = null;
+		}
+		location.disconnect();
 		super.onDestroy();
 	}
 

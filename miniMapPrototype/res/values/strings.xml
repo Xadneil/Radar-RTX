@@ -13,9 +13,9 @@
     <string name="title_activity_event_join">EventJoinActivity</string>
     <string name="title_activity_map">MapActivity</string>
     <string name="eventname">Event Name:</string>
-    <string name="teamonename">Team #1:</string>
-    <string name="teamtwoname">Team #2:</string>
-    <string name="eventmaxplayertext">Max Player:</string>
+    <string name="teamonename">Team 1 Name:</string>
+    <string name="teamtwoname">Team 2 Name:</string>
+    <string name="eventmaxplayertext">Max Players:</string>
 
     <string-array name="eventmatchtypelst">
         <item>Clan War</item>

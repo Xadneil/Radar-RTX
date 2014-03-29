@@ -1,11 +1,19 @@
 package net.devilishro.minimap;
 
+import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketCreator;
+import net.devilishro.minimap.network.PacketHandlers;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -15,9 +23,21 @@ public class EventJoinActivity extends Activity {
 	OnClickListener listener = new OnClickListener() {
 		@Override
 		public void onClick(View arg0) {
-
+			// TODO <j> join team packet
 			Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
 			startActivity(i);
+		}
+	};
+
+	@SuppressLint("HandlerLeak")
+	public Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.what == 0) {
+				finish();
+			} else if (msg.what == 1) {
+				team1List.getAdapter();
+			}
 		}
 	};
 
@@ -31,8 +51,58 @@ public class EventJoinActivity extends Activity {
 				.getCurrentEvent().title);
 		((Button) this.findViewById(R.id.group_1_button))
 				.setOnClickListener(listener);
+		((Button) this.findViewById(R.id.group_2_button))
+				.setOnClickListener(listener);
 		team1List = (ListView) findViewById(R.id.team1_list);
 		team2List = (ListView) findViewById(R.id.team2_list);
+
+		if (AppState.getCurrentEvent().team1 != null
+				&& AppState.getCurrentEvent().team2 != null) {
+			((Button) findViewById(R.id.group_1_button)).setText("Join "
+					+ AppState.getCurrentEvent().team1);
+			((Button) findViewById(R.id.group_2_button)).setText("Join "
+					+ AppState.getCurrentEvent().team2);
+		}
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		AppState.getEventServer().registerContext(this,
+				Network.Activities.TEAM_JOIN);
+	}
+
+	@Override
+	public void onPause() {
+		AppState.getEventServer().unregisterContext(
+				Network.Activities.TEAM_JOIN);
+		super.onPause();
+	}
+
+	@Override
+	public void onDestroy() {
+		// in case finish() is called
+		AppState.getEventServer().unregisterContext(
+				Network.Activities.TEAM_JOIN);
+		super.onDestroy();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// If back button pushed, send leave event packet, let handler change
+		// activity
+		if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+			AppState.getEventServer().send(
+					PacketCreator.leaveEvent(AppState.getCurrentEvent().id));
+			if (AppState.networkBypass) {
+				PacketHandlers.eventLeave.handlePacket(null, AppState
+						.getEventServer(), AppState.getEventServer()
+						.getContext());
+			}
+			return true;
+		} else {
+			return super.onKeyDown(keyCode, event);
+		}
 	}
 
 	public ListView getTeam1() {
@@ -41,6 +111,13 @@ public class EventJoinActivity extends Activity {
 
 	public ListView getTeam2() {
 		return team2List;
+	}
+
+	public void refresh(int team) {
+		ListView view = team == 0 ? team1List : team2List;
+		view.setAdapter(new ArrayAdapter<String>(this,
+				android.R.layout.simple_list_item_1, AppState
+						.getTeamNames(team).toArray(new String[0])));
 	}
 
 	@Override
