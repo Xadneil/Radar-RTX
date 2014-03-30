@@ -36,7 +36,12 @@ public class EventJoinActivity extends Activity {
 			if (msg.what == 0) {
 				finish();
 			} else if (msg.what == 1) {
-				team1List.getAdapter();
+				int team = msg.arg1;
+				ListView view = team == 0 ? team1List : team2List;
+				view.setAdapter(new ArrayAdapter<String>(
+						EventJoinActivity.this,
+						android.R.layout.simple_list_item_1, AppState
+								.getTeamNames(team).toArray(new String[0])));
 			}
 		}
 	};
@@ -114,10 +119,9 @@ public class EventJoinActivity extends Activity {
 	}
 
 	public void refresh(int team) {
-		ListView view = team == 0 ? team1List : team2List;
-		view.setAdapter(new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, AppState
-						.getTeamNames(team).toArray(new String[0])));
+		Message m = handler.obtainMessage(1);
+		m.arg1 = team;
+		m.sendToTarget();
 	}
 
 	@Override

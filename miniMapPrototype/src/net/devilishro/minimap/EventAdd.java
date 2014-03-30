@@ -1,6 +1,7 @@
 package net.devilishro.minimap;
 
 import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketCreator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,21 +24,22 @@ public class EventAdd extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			if (msg.what == 0) {
+				error.setText("");
 				finish();
 			} else if (msg.what == 1) {
 				short status = (short) msg.arg1;
 				String eString = "";
 				if ((status & 0x0002) != 0) {
-					eString += "Event name length must be 1 - 25 characters.\n";
+					eString += "Event name length must be 5 - 25 characters.\n";
 				}
 				if ((status & 0x0004) != 0) {
 					eString += "Another event with the same name already exists.\n";
 				}
 				if ((status & 0x0005) != 0) {
-					eString += "Team 1 name length must be 1 - 25 characters.\n";
+					eString += "Team 1 name length must be 5 - 25 characters.\n";
 				}
 				if ((status & 0x0010) != 0) {
-					eString += "Team 2 name length must be 1 - 25 characters.\n";
+					eString += "Team 2 name length must be 5 - 25 characters.\n";
 				}
 				if ((status & 0x0020) != 0) {
 					eString += "Team 1 name and Team 2 name must be different.\n";
@@ -50,10 +53,30 @@ public class EventAdd extends Activity {
 				if ((status & 0x0100) != 0) {
 					eString += "Invalid privledge.\n";
 				}
+				if ((status & 0x0200) != 0) {
+					// not connected
+					throw new RuntimeException("EventAdd: Not Connected");
+				}
 				error.setText(eString);
 			}
 		}
 	};
+
+	public void onAddEventClick(View view) {
+		String name, team1, team2, message;
+		int type;
+		name = ((EditText) findViewById(R.id.eventedit)).getText().toString();
+		team1 = ((EditText) findViewById(R.id.teamoneedit)).getText()
+				.toString();
+		team2 = ((EditText) findViewById(R.id.teamtwoedit)).getText()
+				.toString();
+		type = 1 + ((Spinner) findViewById(R.id.eventmatchtype))
+				.getSelectedItemPosition();
+		message = ((EditText) findViewById(R.id.eventMessage)).getText()
+				.toString();
+		AppState.getEventServer().send(
+				PacketCreator.addEvent(name, team1, team2, type, message));
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

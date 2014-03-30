@@ -35,13 +35,14 @@ public class AppState {
 
 	// general information
 	private static String username;
-	private static String serverAddress = "50.62.212.171";
+	//private static String serverAddress = "50.62.212.171";
+	private static String serverAddress = "192.168.1.11";
 
 	//Networks
 	private static Network eventServer = new Network(Type.EVENT, serverAddress, 33630);
 	private static Network mapServer;
 
-	public static boolean networkBypass = true;
+	public static boolean networkBypass = false;
 
 	static {
 		// may not ever get packet that starts server

@@ -105,6 +105,7 @@ public class Network extends Thread {
 				Packet p = new Packet(smaller, bytesRead, true);
 				try {
 					short opcode = p.extract_short();
+					Log.d(TAG, "Got packet opcode " + Integer.toHexString(opcode));
 					PacketHandler handler = handlers.get(opcode);
 					// spin off a new thread to deal with handling
 					new PacketThread(handler, p, this, context).start();

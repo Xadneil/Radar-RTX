@@ -18,9 +18,9 @@
     <string name="eventmaxplayertext">Max Players:</string>
 
     <string-array name="eventmatchtypelst">
-        <item>Clan War</item>
-        <item>Team Death Match</item>
         <item>Free For All</item>
+        <item>Team Death Match</item>
+        <item>Clan War</item>
     </string-array>
 
     <string name="eventaddbuttext">Add Event</string>

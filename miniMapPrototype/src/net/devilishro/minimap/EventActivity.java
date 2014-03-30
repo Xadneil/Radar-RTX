@@ -6,10 +6,13 @@ import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.Packet;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +27,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
-// TODO refresh button
 /**
  * Event Activity. Contains the event list and the main menu.
  * 
@@ -45,13 +47,24 @@ public class EventActivity extends Activity {
 						temp);
 			} else {
 				// send packet to server
-				AppState.getEventServer().send(
-						PacketCreator.selectEvent(position));
+				AppState.getEventServer()
+						.send(PacketCreator.selectEvent(AppState
+								.getCurrentEvent().id));
 			}
 		}
 	};
 
-	private EventAdapter adapter;
+	@SuppressLint("HandlerLeak")
+	private Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message m) {
+			if (m.what == 0) {
+				ListView l = (ListView) EventActivity.this
+						.findViewById(R.id.eventListView);
+				l.setAdapter(new EventAdapter(EventActivity.this));
+			}
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +73,7 @@ public class EventActivity extends Activity {
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
 		Log.d("EventActivity", "State.getEvents(): "
 				+ (AppState.getEvents() == null ? "yes" : "no"));
-		adapter = new EventAdapter(this);
-		l.setAdapter(adapter);
+		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
 	}
 
@@ -141,11 +153,15 @@ public class EventActivity extends Activity {
 		return true;
 	}
 
+	public void onRefreshClicked(View view) {
+		AppState.getEventServer().send(PacketCreator.requestEventList());
+	}
+
 	/**
 	 * Causes the event list to refresh and display current data
 	 */
 	public void refresh() {
-		adapter.notifyDataSetChanged();
+		handler.obtainMessage(0).sendToTarget();
 	}
 
 	/**
@@ -213,7 +229,7 @@ public class EventActivity extends Activity {
 		public LatLng position;
 		public float zoom;
 		public int id;
-		public short type;
+		public int type;
 		public String team1, team2;
 
 		/**
