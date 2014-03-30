@@ -290,6 +290,14 @@ public class PacketHandlers {
 			if (status == 0x0001) {
 				// event added successfully
 				activity.getHandler().obtainMessage(0).sendToTarget();
+				// wait until event add returns
+				try {
+					Thread.sleep(400);
+				} catch (InterruptedException e) {
+				}
+				// refresh event list
+				AppState.getEventServer()
+						.send(PacketCreator.requestEventList());
 			} else {
 				// some error occurred
 				Message m = activity.getHandler().obtainMessage(1);
