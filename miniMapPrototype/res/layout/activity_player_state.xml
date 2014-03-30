@@ -22,12 +22,12 @@
         android:id="@+id/editText3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/editText1"
-        android:layout_alignLeft="@+id/editText1"
+        android:layout_above="@+id/eventMessage"
+        android:layout_alignLeft="@+id/eventMessage"
         android:ems="10" />
 
     <EditText
-        android:id="@+id/editText1"
+        android:id="@+id/eventMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/editText2"
@@ -38,7 +38,7 @@
         android:id="@+id/editText2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/editText1"
+        android:layout_alignLeft="@+id/eventMessage"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="20dp"
         android:ems="10" />
@@ -47,7 +47,7 @@
         android:id="@+id/login_error_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/editText1"
+        android:layout_above="@+id/eventMessage"
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/editText3"
         android:text="Name"
@@ -57,7 +57,7 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/editText1"
+        android:layout_alignBottom="@+id/eventMessage"
         android:layout_alignParentLeft="true"
         android:text="Email"
         android:textAppearance="?android:attr/textAppearanceMedium" />

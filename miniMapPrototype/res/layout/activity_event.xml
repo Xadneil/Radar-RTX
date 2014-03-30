@@ -12,7 +12,7 @@
         android:id="@+id/eventListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/event_join_name"
+        android:layout_below="@+id/refreshButton"
         android:layout_centerHorizontal="true" >
 
     </ListView>
@@ -25,5 +25,14 @@
         android:layout_alignParentTop="true"
         android:text="@string/select_event"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="Refresh"
+        android:onClick="onRefreshClicked" />
 
 </RelativeLayout>

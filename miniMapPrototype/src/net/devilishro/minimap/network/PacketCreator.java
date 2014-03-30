@@ -88,7 +88,7 @@ public class PacketCreator {
 	 * @return the event-adding packet
 	 */
 	public static Packet addEvent(String name, String team1, String team2,
-			short type, String message) {
+			int type, String message) {
 		Packet ret = new Packet(2 + 4 + name.getBytes().length + 4
 				+ team1.getBytes().length + 4 + team2.getBytes().length + 4 + 4
 				+ message.getBytes().length);
@@ -132,8 +132,10 @@ public class PacketCreator {
 	 * @return the event server packet
 	 */
 	public static Packet eventConnect() {
-		Packet ret = new Packet(2);
+		Packet ret = new Packet(
+				2 + 4 + AppState.getUsername().getBytes().length);
 		ret.pack_short(SendOpcode.EVENT_SERVER_CONNECT.getValue());
+		ret.pack_string(AppState.getUsername());
 		return ret;
 	}
 

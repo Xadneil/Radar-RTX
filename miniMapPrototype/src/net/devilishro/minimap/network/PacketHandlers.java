@@ -14,6 +14,7 @@ import net.devilishro.minimap.Minimap;
 import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
 import android.os.Message;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -169,7 +170,7 @@ public class PacketHandlers {
 				for (int i = 0; i < numEvents; i++) {
 					int id = packet.extract_int();
 					String title = packet.extract_string();
-					short type = packet.extract_short();
+					int type = packet.extract_int();
 					String message = packet.extract_string();
 					Event event = new Event();
 					event.id = id;
@@ -211,11 +212,11 @@ public class PacketHandlers {
 				HashMap<Network.Activities, Activity> context) {
 			EventActivity activity = (EventActivity) context
 					.get(Network.Activities.EVENT_LIST);
-			short status;
+			int status;
 			if (AppState.networkBypass) {
 				status = 0x0001;
 			} else {
-				status = packet.extract_short();
+				status = packet.extract_int();
 				String team1 = packet.extract_string();
 				String team2 = packet.extract_string();
 				AppState.getCurrentEvent().team1 = team1;
@@ -240,6 +241,11 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
+			// wait for join activity to start
+			try {
+				Thread.sleep(400);
+			} catch (InterruptedException e) {
+			}
 			short data = packet.extract_short();
 			int whichTeam = (data & 0x0001) != 0 ? 0 : 1;
 			// add players
@@ -284,6 +290,14 @@ public class PacketHandlers {
 			if (status == 0x0001) {
 				// event added successfully
 				activity.getHandler().obtainMessage(0).sendToTarget();
+				// wait until event add returns
+				try {
+					Thread.sleep(400);
+				} catch (InterruptedException e) {
+				}
+				// refresh event list
+				AppState.getEventServer()
+						.send(PacketCreator.requestEventList());
 			} else {
 				// some error occurred
 				Message m = activity.getHandler().obtainMessage(1);
@@ -314,6 +328,7 @@ public class PacketHandlers {
 			if (status == 0x0001) {
 				AppState.getEventServer()
 						.send(PacketCreator.requestEventList());
+				Log.d("PacketHandlers", "Send event list request");
 				if (AppState.networkBypass) {
 					eventList.handlePacket(null, n, context);
 				}
@@ -336,6 +351,7 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Network.Activities, Activity> context) {
+			// tell event join to go back to event list
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
 					.obtainMessage(0).sendToTarget();
 		}

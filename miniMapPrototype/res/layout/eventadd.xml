@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android = "http://schemas.android.com/apk/res/android"
-    android:layout_width = "match_parent"
-    android:layout_height = "match_parent" >
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="*" >
     
-    <TableRow>
+    <TableRow android:layout_width="match_parent" >
 
 	    <TextView
 	        android:id="@+id/eventname"
-	        android:layout_width="wrap_content"
+	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:text="@string/eventname"
 	        android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -52,22 +53,22 @@
 	        android:layout_height = "wrap_content"
 	        />
 	</TableRow>
-	<TableRow>
 
-		<TextView
-		    android:id="@+id/eventmaxplayer"
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:text="@string/eventmaxplayertext"
-		    android:textAppearance="?android:attr/textAppearanceLarge" />
+	<TextView
+	    android:id="@+id/textView1"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="Event Message:"
+	    android:textAppearance="?android:attr/textAppearanceLarge" />
 
-		<EditText
-	        android:id = "@+id/eventmaxplayeredit"
-	        android:inputType = "text"
-	        android:layout_width = "fill_parent"
-	        android:layout_height = "wrap_content"
-	        />
-	</TableRow>
+	<EditText
+	    android:id="@+id/eventMessage"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:ems="10" >
+
+	    <requestFocus />
+	</EditText>
 
 	<Spinner
 	    android:id = "@+id/eventmatchtype"
@@ -79,6 +80,7 @@
 	    android:layout_width = "fill_parent"
 	    android:layout_height = "wrap_content"
 	    android:text = "@string/eventaddbuttext"
+	    android:onClick="onAddEventClick"
 	    />
 
 	<TextView
