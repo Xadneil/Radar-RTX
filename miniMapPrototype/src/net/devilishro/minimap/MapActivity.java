@@ -120,13 +120,14 @@ public class MapActivity extends Activity {
 
 	private void initialize() {
 		synchronized (AppState.getPositionsLock()) {
-			for (int i = 0; i < AppState.getPositions().length; i++) {
-				if (AppState.getNames()[i] != null
-						&& AppState.getPositions()[i] != null) {
+			for (int i = 0; i < AppState.getPositions().size(); i++) {
+				int id = AppState.getPositions().keyAt(i);
+				if (AppState.getNames().get(id) != null
+						&& AppState.getPositions().get(id) != null) {
 					AppState.getMarkers()[i] = map
 							.addMarker(new MarkerOptions().snippet(
-									AppState.getNames()[i]).position(
-									AppState.getPositions()[i]));
+									AppState.getNames().get(id)).position(
+									AppState.getPositions().get(id)));
 				}
 			}
 		}
@@ -134,6 +135,7 @@ public class MapActivity extends Activity {
 
 	/**
 	 * Gets the last location measured
+	 * 
 	 * @return a LatLng for the location
 	 */
 	public LatLng getLocation() {
@@ -229,9 +231,10 @@ public class MapActivity extends Activity {
 
 	private void displayPositions() {
 		synchronized (AppState.getPositionsLock()) {
-			for (int i = 0; i < AppState.getPositions().length; i++) {
+			for (int i = 0; i < AppState.getPositions().size(); i++) {
+				int id = AppState.getPositions().keyAt(i);
 				Marker m = AppState.getMarkers()[i];
-				LatLng position = AppState.getPositions()[i];
+				LatLng position = AppState.getPositions().get(id);
 				if (m != null && position != null) {
 					animateMarker(m, position, false);
 				}

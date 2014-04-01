@@ -357,13 +357,111 @@ public class PacketHandlers {
 		}
 	};
 
+	public static PacketHandler teamJoin = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.TEAM_JOIN;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			Message m = ((EventJoinActivity) context
+					.get(Network.Activities.TEAM_JOIN)).handler.obtainMessage();
+			if (status == 0x0001) {
+				m.what = 2;
+			} else {
+				m.what = 3;
+				m.arg1 = status;
+			}
+			m.sendToTarget();
+		}
+	};
+
+	public static PacketHandler fieldConnect = new PacketHandler() {
+		{
+			type = Type.MAP;
+			opcode = RecvOpcode.FIELD_CONNECT;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			// TODO
+		}
+	};
+
+	public static PacketHandler fieldPlayerAdd = new PacketHandler() {
+		{
+			type = Type.MAP;
+			opcode = RecvOpcode.FIELD_PLAYER_ADD;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			int toAdd = packet.extract_int();
+			for (int i = 0; i < toAdd; i++) {
+				int id = packet.extract_int();
+				String name = packet.extract_string();
+				synchronized (AppState.getPositionsLock()) {
+					AppState.getNames().put(id, name);
+				}
+			}
+		}
+	};
+
+	public static PacketHandler fieldPlayerDel = new PacketHandler() {
+		{
+			type = Type.MAP;
+			opcode = RecvOpcode.FIELD_PLAYER_DEL;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			int toAdd = packet.extract_int();
+			for (int i = 0; i < toAdd; i++) {
+				int id = packet.extract_int();
+				synchronized (AppState.getPositionsLock()) {
+					AppState.getNames().remove(id);
+				}
+			}
+		}
+	};
+
+	public static PacketHandler fieldDisconnect = new PacketHandler() {
+		{
+			type = Type.MAP;
+			opcode = RecvOpcode.FIELD_DISCONNECT;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			// TODO stop map activity
+		}
+	};
+
 	/**
 	 * Packet Handler for receiving updated positions on the map
 	 */
 	public static PacketHandler mapPositions = new PacketHandler() {
 		{
 			type = Type.MAP;
-			opcode = RecvOpcode.MAP_UPDATE;
+			opcode = RecvOpcode.FIELD_UPDATE;
 		}
 
 		@Override
@@ -377,7 +475,7 @@ public class PacketHandlers {
 				double lng = packet.extract_double();
 				LatLng ll = new LatLng(lat, lng);
 				synchronized (AppState.getPositionsLock()) {
-					AppState.getPositions()[playerId] = ll;
+					AppState.getPositions().put(playerId, ll);
 				}
 			}
 			// tell Map to update

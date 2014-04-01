@@ -2,8 +2,10 @@ package net.devilishro.minimap.network;
 
 public enum RecvOpcode implements Opcode {
 
-	LOGIN(0xa2), REGISTER(0xa4), MAP_UPDATE(0xb2), EVENT_ADD(0xe2), EVENT_LIST(0xe4), EVENT_CHOOSE(
-			0xe6), PLAYER_LIST_UPDATE(0xe7), EVENT_LEAVE(0xe9), EVENT_SERVER_RESPONSE(0xeb);
+	LOGIN(0xa2), REGISTER(0xa4), EVENT_ADD(0xe2), EVENT_LIST(0xe4), EVENT_CHOOSE(
+			0xe6), PLAYER_LIST_UPDATE(0xe7), EVENT_LEAVE(0xe9), TEAM_JOIN(0xf8), EVENT_SERVER_RESPONSE(
+			0xeb), FIELD_CONNECT(0xb2), FIELD_PLAYER_ADD(0xb3), FIELD_PLAYER_DEL(
+			0xb4), FIELD_DISCONNECT(0xb6), FIELD_UPDATE(0xb7);
 
 	RecvOpcode(int value) {
 		this.value = (short) value;

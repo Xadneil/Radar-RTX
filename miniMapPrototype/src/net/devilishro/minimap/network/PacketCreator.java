@@ -139,6 +139,30 @@ public class PacketCreator {
 		return ret;
 	}
 
+	public static Packet joinTeam(String teamName) {
+		Packet ret = new Packet(2 + 4 + 4 + teamName.getBytes().length);
+		ret.pack_short(SendOpcode.TEAM_JOIN.getValue());
+		ret.pack_int(AppState.getCurrentEvent().id);
+		ret.pack_string(teamName);
+		return ret;
+	}
+
+	public static Packet fieldConnect(String team) {
+		Packet ret = new Packet(2 + 4 + 4 + team.getBytes().length + 4
+				+ AppState.getUsername().getBytes().length);
+		ret.pack_short(SendOpcode.FIELD_CONNECT.getValue());
+		ret.pack_int(AppState.getCurrentEvent().id);
+		ret.pack_string(team);
+		ret.pack_string(AppState.getUsername());
+		return ret;
+	}
+
+	public static Packet fieldDisconnect() {
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.FIELD_DISCONNECT.getValue());
+		return ret;
+	}
+
 	/**
 	 * Creates a packet to update the server of your position
 	 * 
@@ -150,7 +174,7 @@ public class PacketCreator {
 	 */
 	public static Packet reportLocation(double lat, double lng) {
 		Packet ret = new Packet(2 + 8 + 8);
-		ret.pack_short(SendOpcode.MAP_STATE.getValue());
+		ret.pack_short(SendOpcode.FIELD_LOCATION.getValue());
 		ret.pack_double(lat);
 		ret.pack_double(lng);
 		return ret;

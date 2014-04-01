@@ -6,6 +6,7 @@ import java.util.HashSet;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketHandlers.Type;
+import android.util.SparseArray;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -19,8 +20,8 @@ public class AppState {
 	private static final int MAX_PLAYERS = 8;
 
 	// map information
-	private static String names[] = new String[MAX_PLAYERS];
-	private static LatLng positions[] = new LatLng[MAX_PLAYERS];
+	private static SparseArray<String> names = new SparseArray<String>(MAX_PLAYERS);
+	private static SparseArray<LatLng> positions = new SparseArray<LatLng>(MAX_PLAYERS);
 	private static Marker markers[] = new Marker[MAX_PLAYERS];
 	private static final Object positionsLock = new Object();
 
@@ -35,20 +36,20 @@ public class AppState {
 
 	// general information
 	private static String username;
-	//private static String serverAddress = "50.62.212.171";
-	private static String serverAddress = "192.168.1.11";
+	private static String serverAddress = "50.62.212.171";
+	//private static String serverAddress = "192.168.1.11";
 
 	//Networks
 	private static Network eventServer = new Network(Type.EVENT, serverAddress, 33630);
-	private static Network mapServer;
+	private static Network fieldServer;
 
 	public static boolean networkBypass = false;
 
 	static {
 		// may not ever get packet that starts server
 		if (networkBypass) {
-			mapServer = new Network(Type.EVENT, serverAddress, 33630);
-			mapServer.start();
+			fieldServer = new Network(Type.EVENT, serverAddress, 33630);
+			fieldServer.start();
 		}
 		for (int i = 0; i < 2; i++) {
 			teamNames.add(i, new HashSet<String>(MAX_PLAYERS));
@@ -59,7 +60,7 @@ public class AppState {
 	private static String TAG = "State";
 
 	public static void initMapServer(int port) {
-		mapServer = new Network(Type.MAP, serverAddress, port);
+		fieldServer = new Network(Type.MAP, serverAddress, port);
 	}
 
 	public static String getServerAddress() {
@@ -71,7 +72,7 @@ public class AppState {
 	}
 
 	public static Network getMapServer() {
-		return mapServer;
+		return fieldServer;
 	}
 
 	public static boolean isLoginOK() {
@@ -82,7 +83,7 @@ public class AppState {
 		AppState.loginOK = loginOK;
 	}
 
-	public static String[] getNames() {
+	public static SparseArray<String> getNames() {
 		return names;
 	}
 
@@ -124,7 +125,7 @@ public class AppState {
 		}
 	}
 
-	public static LatLng[] getPositions() {
+	public static SparseArray<LatLng> getPositions() {
 		return positions;
 	}
 

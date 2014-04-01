@@ -17,15 +17,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class EventJoinActivity extends Activity {
 
 	OnClickListener listener = new OnClickListener() {
 		@Override
-		public void onClick(View arg0) {
-			// TODO <j> join team packet
-			Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
-			startActivity(i);
+		public void onClick(View view) {
+			String team = view.getId() == R.id.group_1_button ? AppState
+					.getCurrentEvent().team1 : AppState.getCurrentEvent().team1;
+			AppState.getEventServer().send(PacketCreator.joinTeam(team));
 		}
 	};
 
@@ -42,6 +43,39 @@ public class EventJoinActivity extends Activity {
 						EventJoinActivity.this,
 						android.R.layout.simple_list_item_1, AppState
 								.getTeamNames(team).toArray(new String[0])));
+			} else if (msg.what == 2) {
+				Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
+				startActivity(i);
+			} else if (msg.what == 3) {
+				String error = "";
+				int status = msg.arg1;
+				/*
+				 * 0x0001 # event join successful 0x0002 # team full 0x0004 #
+				 * team does not exist 0x0008 # event does not exist 0x0010 #
+				 * already in a event (redundant error checking) 0x0020 #
+				 * already in a team (redundant error checking)
+				 */
+				if ((status & 0x0002) != 0) {
+					// team full
+					error += "Event is full. ";
+				}
+				if ((status & 0x0004) != 0) {
+					// team doesn't exist
+					error += "Team doesn't exist. ";
+				}
+				if ((status & 0x0008) != 0) {
+					// event doesn't exist
+					error += "Event doesn't exist.";
+				}
+				if ((status & 0x0010) != 0 || (status & 0x0020) != 0) {
+					// already in event, team; shouldn't happen
+					throw new RuntimeException("Already in event or team!");
+				}
+				if (!"".equals(error)) {
+					Toast.makeText(EventJoinActivity.this, error,
+							Toast.LENGTH_LONG).show();
+					finish();
+				}
 			}
 		}
 	};
