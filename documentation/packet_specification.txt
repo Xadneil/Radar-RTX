@@ -1,1 +1,0 @@
-New moved the new packet specification here: https://github.com/trickyloki3/lokiserver
