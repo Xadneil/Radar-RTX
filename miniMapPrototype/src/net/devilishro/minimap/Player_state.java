@@ -1,73 +1,103 @@
 package net.devilishro.minimap;
 
-import java.util.ArrayList;
-
-import android.os.Bundle;
+import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketCreator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
-import android.view.Menu;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 public class Player_state extends Activity {
 
-	ArrayList<String> listy;
-	
+	@SuppressLint("HandlerLeak")
+	private Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.what == 0) {
+				String players[] = (String[]) msg.obj;
+				ListAdapter adapter = new ArrayAdapter<String>(
+						Player_state.this, R.id.player_list, players);
+				list.setAdapter(adapter);
+			} else if (msg.what == 1) {
+				PlayerInfo info = (PlayerInfo) msg.obj;
+
+				((TextView) Player_state.this.findViewById(R.id.player_login))
+						.setText(info.login);
+
+				if (info.event == null) {
+					((TextView) Player_state.this
+							.findViewById(R.id.player_event)).setText("N/A");
+				} else {
+					((TextView) Player_state.this
+							.findViewById(R.id.player_event))
+							.setText(info.event);
+				}
+
+				if (info.team == null) {
+					((TextView) Player_state.this
+							.findViewById(R.id.player_team)).setText("N/A");
+				} else {
+					((TextView) Player_state.this
+							.findViewById(R.id.player_team)).setText(info.team);
+				}
+			}
+		}
+	};
+
+	private OnItemClickListener listener = new OnItemClickListener() {
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position,
+				long id) {
+			String name = (String) list.getAdapter().getItem(position);
+			AppState.getEventServer().send(PacketCreator.playerInfo(name));
+			((TextView) Player_state.this.findViewById(R.id.player_name))
+					.setText(name);
+		}
+	};
+
+	private ListView list;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_player_state);
-		listy = new ArrayList<String>();
-		setList();
-		ListView one = (ListView) this.findViewById(R.id.team1_list);
-		one.setAdapter(new CoolAdapter(this, listy));
+		list = (ListView) findViewById(R.id.player_list);
+		list.setOnItemClickListener(listener);
 	}
 
-	private void setList() {
-		listy.add("Player 1 Status");
-		listy.add("Player 2 Status");
-		listy.add("Player 2 Status");
-		listy.add("Player 4 Status");
-		listy.add("Player 5 Status");
-	}
-	
-	private static class CoolAdapter extends ArrayAdapter<String> {
-		Context context;
-		ArrayList<String> b;
-
-		public CoolAdapter(Player_state player_state, ArrayList<String> liste) {
-			super(player_state, R.id.team1_list, liste);
-			b = liste;
-			context = player_state;
-		}
-
-		@Override
-		public View getView(int pos, View convert, ViewGroup parent) {
-			String temp;
-			if (convert == null)
-				convert = View.inflate(context, R.layout.state,
-						null);
-			try {
-				temp = b.get(pos);
-			} catch (Exception e) {
-				temp = null;
-			}
-
-			if (temp != null)
-				((TextView) convert.findViewById(R.id.login_error_view)).setText(temp);
-			return convert;
-		}
-
-	}
-	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.player_state, menu);
-		return true;
+	public void onResume() {
+		super.onResume();
+		AppState.getEventServer().registerContext(this,
+				Network.Activities.PLAYER_LIST);
+		AppState.getEventServer().send(PacketCreator.playerList());
 	}
 
+	@Override
+	public void onPause() {
+		super.onPause();
+		AppState.getEventServer().unregisterContext(
+				Network.Activities.PLAYER_LIST);
+	}
+
+	public void refresh(String[] names) {
+		handler.obtainMessage(0, names).sendToTarget();
+	}
+
+	public void info(PlayerInfo info) {
+		handler.obtainMessage(1, info).sendToTarget();
+	}
+
+	public static class PlayerInfo {
+		public String name, login, event, team;
+	}
 }

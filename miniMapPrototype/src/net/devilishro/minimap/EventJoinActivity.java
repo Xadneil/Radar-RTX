@@ -27,8 +27,16 @@ public class EventJoinActivity extends Activity {
 			String team = view.getId() == R.id.group_1_button ? AppState
 					.getCurrentEvent().team1 : AppState.getCurrentEvent().team1;
 			AppState.getEventServer().send(PacketCreator.joinTeam(team));
+			chosenTeam = team;
+			if (AppState.networkBypass) {
+				PacketHandlers.teamJoin.handlePacket(null, AppState
+						.getEventServer(), AppState.getEventServer()
+						.getContext());
+			}
 		}
 	};
+
+	private String chosenTeam;
 
 	@SuppressLint("HandlerLeak")
 	public Handler handler = new Handler() {
@@ -44,17 +52,36 @@ public class EventJoinActivity extends Activity {
 						android.R.layout.simple_list_item_1, AppState
 								.getTeamNames(team).toArray(new String[0])));
 			} else if (msg.what == 2) {
-				Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
-				startActivity(i);
+				AppState.getFieldServer().registerContext(
+						EventJoinActivity.this, Network.Activities.TEAM_JOIN);
+				if (!AppState.getFieldServer().isRunning()
+						&& !AppState.getFieldServer().isError()) {
+					AppState.getFieldServer().start();
+				}
+				new Thread() {
+					@Override
+					public void run() {
+						while (!AppState.getFieldServer().isRunning()
+								&& !AppState.getFieldServer().isError()) {
+							try {
+								Thread.sleep(200);
+							} catch (InterruptedException e) {
+							}
+						}
+						if (!AppState.getFieldServer().isError()) {
+							AppState.getFieldServer().send(
+									PacketCreator.fieldConnect(chosenTeam));
+							if (AppState.networkBypass) {
+								PacketHandlers.fieldConnect.handlePacket(null,
+										AppState.getFieldServer(), AppState
+												.getFieldServer().getContext());
+							}
+						}
+					}
+				}.start();
 			} else if (msg.what == 3) {
 				String error = "";
 				int status = msg.arg1;
-				/*
-				 * 0x0001 # event join successful 0x0002 # team full 0x0004 #
-				 * team does not exist 0x0008 # event does not exist 0x0010 #
-				 * already in a event (redundant error checking) 0x0020 #
-				 * already in a team (redundant error checking)
-				 */
 				if ((status & 0x0002) != 0) {
 					// team full
 					error += "Event is full. ";
@@ -76,6 +103,9 @@ public class EventJoinActivity extends Activity {
 							Toast.LENGTH_LONG).show();
 					finish();
 				}
+			} else if (msg.what == 4) {
+				Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
+				startActivity(i);
 			}
 		}
 	};
@@ -92,7 +122,7 @@ public class EventJoinActivity extends Activity {
 				.setOnClickListener(listener);
 		((Button) this.findViewById(R.id.group_2_button))
 				.setOnClickListener(listener);
-		team1List = (ListView) findViewById(R.id.team1_list);
+		team1List = (ListView) findViewById(R.id.player_list);
 		team2List = (ListView) findViewById(R.id.team2_list);
 
 		if (AppState.getCurrentEvent().team1 != null

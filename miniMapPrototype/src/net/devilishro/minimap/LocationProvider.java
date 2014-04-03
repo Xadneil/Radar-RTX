@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
-// TODO possibly replace with ScheduledThreadPoolExecutor
 /**
  * A location update thread. Sends the user's location to the map server every
  * interval
@@ -27,7 +26,7 @@ public class LocationProvider extends Thread {
 		while (isRunning) {
 			LatLng ll = act.getLocation();
 			if (ll != null) {
-				AppState.getMapServer()
+				AppState.getFieldServer()
 						.send(PacketCreator.reportLocation(ll.latitude,
 								ll.longitude));
 			}

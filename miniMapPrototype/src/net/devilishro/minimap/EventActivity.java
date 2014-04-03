@@ -226,7 +226,7 @@ public class EventActivity extends Activity {
 	 */
 	public static class Event {
 		public String title, message;
-		public LatLng position;
+		public LatLng location;
 		public float zoom;
 		public int id;
 		public int type;
@@ -250,7 +250,7 @@ public class EventActivity extends Activity {
 				float zoom) {
 			this.title = title;
 			this.message = provider;
-			this.position = position;
+			this.location = position;
 			this.zoom = zoom;
 			this.id = id;
 		}

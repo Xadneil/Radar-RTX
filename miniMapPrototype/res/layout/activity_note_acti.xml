@@ -1,7 +1,9 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -9,45 +11,32 @@
     tools:context=".Note_acti" >
 
     <ListView
-        android:id="@+id/team1_list"
+        android:id="@+id/player_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbarStyle="outsideOverlay"
+        android:choiceMode="multipleChoice" />
+
+    <EditText
+        android:id="@+id/notification"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/login_error_view"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true" >
+        android:ems="10"
+        android:hint="Notification" />
 
-    </ListView>
-
-    <TextView
-        android:id="@+id/login_error_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/team1_list"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/team1_list"
-        android:layout_marginBottom="138dp"
-        android:text="Large Text"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <ExpandableListView
-        android:id="@+id/expandableListView1"
+    <Spinner
+        android:id="@+id/urgency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/send"
-        android:layout_alignLeft="@+id/login_error_view"
-        android:layout_alignTop="@+id/login_error_view"
-        android:layout_marginTop="36dp" >
-
-    </ExpandableListView>
+        android:entries="@array/notificationLevel" />
 
     <Button
         android:id="@+id/send"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/expandableListView1"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/expandableListView1"
         android:layout_marginBottom="14dp"
-        android:text="Send Notification" />
+        android:text="Send Notification"
+        android:onClick="onSendClicked" />
 
-</RelativeLayout>
+</LinearLayout>

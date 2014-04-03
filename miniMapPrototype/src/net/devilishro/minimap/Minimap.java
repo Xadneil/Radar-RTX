@@ -97,6 +97,7 @@ public class Minimap extends Activity {
 		login_pass = (EditText) findViewById(R.id.userpass);
 		login_pass_confirm = (EditText) findViewById(R.id.password_confirm);
 		register_error = (TextView) findViewById(R.id.login_error_view);
+		AppState.setApplicationContext(getApplicationContext());
 	}
 
 	/**

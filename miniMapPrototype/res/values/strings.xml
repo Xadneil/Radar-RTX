@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">minimap</string>
+    <string name="app_name">Radar RTX</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="logintext">Username</string>
@@ -10,7 +10,7 @@
     <string name="loginbut">Connect</string>
     <string name="title_activity_event">Events</string>
     <string name="select_event">Select Event</string>
-    <string name="title_activity_event_join">EventJoinActivity</string>
+    <string name="title_activity_event_join">Join a Team</string>
     <string name="title_activity_map">MapActivity</string>
     <string name="eventname">Event Name:</string>
     <string name="teamonename">Team 1 Name:</string>
@@ -23,9 +23,16 @@
         <item>Clan War</item>
     </string-array>
 
+    <string-array name="notificationLevel">
+        <item>Low Priority</item>
+        <item>High Priority</item>
+        <item>Urgent</item>
+    </string-array>
+
     <string name="eventaddbuttext">Add Event</string>
-    <string name="title_activity_note_acti">Note_acti</string>
-    <string name="title_activity_player_state">Player_state</string>
+    <string name="title_activity_note_acti">Send Notification</string>
+    <string name="title_activity_player_state">Player List</string>
     <string name="title_activity_replay">Replay</string>
+    <string name="title_activity_event_add">Add Event</string>
 
 </resources>

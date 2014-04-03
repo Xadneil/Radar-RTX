@@ -22,7 +22,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
+        
         android:theme="@style/AppTheme" >
         <activity
             android:name="net.devilishro.minimap.Minimap"
@@ -46,6 +46,7 @@
         </activity>
         <activity
             android:name="net.devilishro.minimap.EventAdd"
+            android:label="@string/title_activity_event_add"
             android:screenOrientation="portrait" >
         </activity>
         <activity

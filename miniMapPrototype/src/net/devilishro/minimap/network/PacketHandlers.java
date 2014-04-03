@@ -11,9 +11,14 @@ import net.devilishro.minimap.EventAdd;
 import net.devilishro.minimap.EventJoinActivity;
 import net.devilishro.minimap.MapActivity;
 import net.devilishro.minimap.Minimap;
+import net.devilishro.minimap.Note_acti;
+import net.devilishro.minimap.Player_state;
 import net.devilishro.minimap.network.Network.Activities;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -181,9 +186,11 @@ public class PacketHandlers {
 				}
 			} else {
 				AppState.setEventNumber(1);
-				AppState.getEvents()[0] = new EventActivity.Event(0,
-						"Test Event", "Provider", new LatLng(28.059891,
-								-82.416183), 17.0f);
+				EventActivity.Event e = new EventActivity.Event();
+				e.id = 0;
+				e.message = "message";
+				e.title = "Test Event";
+				AppState.getEvents()[0] = e;
 			}
 			Minimap minimap = (Minimap) context.get(Network.Activities.LOGIN);
 			// this is the first time this handler has been used since login
@@ -215,6 +222,8 @@ public class PacketHandlers {
 			int status;
 			if (AppState.networkBypass) {
 				status = 0x0001;
+				AppState.getCurrentEvent().team1 = "Team 1";
+				AppState.getCurrentEvent().team2 = "Team 2";
 			} else {
 				status = packet.extract_int();
 				String team1 = packet.extract_string();
@@ -232,10 +241,10 @@ public class PacketHandlers {
 	/**
 	 * Packet Handler for single-event player list updates
 	 */
-	public static PacketHandler playerListUpdate = new PacketHandler() {
+	public static PacketHandler teamListUpdate = new PacketHandler() {
 		{
 			type = Type.EVENT;
-			opcode = RecvOpcode.PLAYER_LIST_UPDATE;
+			opcode = RecvOpcode.TEAM_LIST_UPDATE;
 		}
 
 		@Override
@@ -367,11 +376,24 @@ public class PacketHandlers {
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
 			short status;
+			LatLng location;
+			float zoom;
 			if (AppState.networkBypass) {
 				status = 0x0001;
+				location = new LatLng(28.059891, -82.416183);
+				zoom = 17.0f;
 			} else {
 				status = packet.extract_short();
+				@SuppressWarnings("unused")
+				int port = packet.extract_int(); // do nothing
+				double lat = packet.extract_double();
+				double lng = packet.extract_double();
+				location = new LatLng(lat, lng);
+				zoom = packet.extract_float();
 			}
+			AppState.getCurrentEvent().location = location;
+			AppState.getCurrentEvent().zoom = zoom;
+
 			Message m = ((EventJoinActivity) context
 					.get(Network.Activities.TEAM_JOIN)).handler.obtainMessage();
 			if (status == 0x0001) {
@@ -381,6 +403,84 @@ public class PacketHandlers {
 				m.arg1 = status;
 			}
 			m.sendToTarget();
+		}
+	};
+
+	public static PacketHandler eventNotificationCreate = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.EVENT_NOTIFICATION_CREATE;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			short status;
+			if (AppState.networkBypass) {
+				status = 0x0001;
+			} else {
+				status = packet.extract_short();
+			}
+			Note_acti activity = (Note_acti) context
+					.get(Network.Activities.NOTIFICATION);
+			if (status == 0x0001) {
+				activity.response(null); // no error
+			} else {
+				activity.response("Bad Error. Status: "
+						+ Integer.toHexString(status));
+			}
+		}
+	};
+
+	public static PacketHandler notification = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.NOTIFICATION;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			String message;
+			if (AppState.networkBypass) {
+				message = "notification";
+			} else {
+				message = packet.extract_string();
+			}
+			NotificationCompat.Builder builder = new NotificationCompat.Builder(
+					AppState.getApplicationContext())
+					.setSmallIcon(android.R.drawable.ic_dialog_info)
+					.setContentTitle("Radar RTX Announcment")
+					.setContentText(message);
+			NotificationManager manager = (NotificationManager) AppState
+					.getApplicationContext().getSystemService(
+							Context.NOTIFICATION_SERVICE);
+			manager.notify(0, builder.build());
+		}
+	};
+
+	public static PacketHandler playerList = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.PLAYER_LIST;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			Player_state activity = (Player_state) context
+					.get(Network.Activities.PLAYER_LIST);
+			if (AppState.networkBypass) {
+				String names[] = { "Jim", "Daniel", "David" };
+				activity.refresh(names);
+			} else {
+				int numNames = packet.extract_int();
+				String names[] = new String[numNames];
+				for (int i = 0; i < numNames; i++) {
+					names[i] = packet.extract_string();
+				}
+				activity.refresh(names);
+			}
 		}
 	};
 
@@ -399,7 +499,10 @@ public class PacketHandlers {
 			} else {
 				status = packet.extract_short();
 			}
-			// TODO
+			// TODO handle status
+			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
+					.obtainMessage(4).sendToTarget();
+			n.unregisterContext(Network.Activities.TEAM_JOIN);
 		}
 	};
 
@@ -420,6 +523,7 @@ public class PacketHandlers {
 					AppState.getNames().put(id, name);
 				}
 			}
+			// TODO notify map?
 		}
 	};
 
@@ -439,6 +543,7 @@ public class PacketHandlers {
 					AppState.getNames().remove(id);
 				}
 			}
+			// TODO notify map?
 		}
 	};
 
@@ -451,7 +556,9 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
-			// TODO stop map activity
+			// stop map activity
+			((MapActivity) context.get(Network.Activities.MAP)).getHandler()
+					.obtainMessage(1).sendToTarget();
 		}
 	};
 

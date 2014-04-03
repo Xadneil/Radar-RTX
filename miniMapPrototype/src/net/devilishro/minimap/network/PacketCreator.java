@@ -1,5 +1,7 @@
 package net.devilishro.minimap.network;
 
+import java.util.ArrayList;
+
 import net.devilishro.minimap.AppState;
 
 /**
@@ -132,10 +134,27 @@ public class PacketCreator {
 	 * @return the event server packet
 	 */
 	public static Packet eventConnect() {
-		Packet ret = new Packet(
-				2 + 4 + AppState.getUsername().getBytes().length);
+		Packet ret;
+		if (AppState.networkBypass) {
+			return null;
+		} else {
+			ret = new Packet(2 + 4 + AppState.getUsername().getBytes().length);
+		}
 		ret.pack_short(SendOpcode.EVENT_SERVER_CONNECT.getValue());
 		ret.pack_string(AppState.getUsername());
+		return ret;
+	}
+
+	public static Packet playerList() {
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.PLAYER_LIST.getValue());
+		return ret;
+	}
+
+	public static Packet playerInfo(String name) {
+		Packet ret = new Packet(2 + 4 + name.getBytes().length);
+		ret.pack_short(SendOpcode.PLAYER_INFO.getValue());
+		ret.pack_string(name);
 		return ret;
 	}
 
@@ -144,6 +163,19 @@ public class PacketCreator {
 		ret.pack_short(SendOpcode.TEAM_JOIN.getValue());
 		ret.pack_int(AppState.getCurrentEvent().id);
 		ret.pack_string(teamName);
+		return ret;
+	}
+
+	public static Packet eventNotification(String message,
+			ArrayList<Integer> events) {
+		Packet ret = new Packet(2 + 4 + message.getBytes().length + 4 + 4
+				* events.size());
+		ret.pack_short(SendOpcode.EVENT_NOTIFICATION.getValue());
+		ret.pack_string(message);
+		ret.pack_int(events.size());
+		for (Integer i : events) {
+			ret.pack_int(i);
+		}
 		return ret;
 	}
 

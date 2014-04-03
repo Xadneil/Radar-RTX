@@ -6,6 +6,7 @@ import java.util.HashSet;
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketHandlers.Type;
+import android.content.Context;
 import android.util.SparseArray;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -22,7 +23,7 @@ public class AppState {
 	// map information
 	private static SparseArray<String> names = new SparseArray<String>(MAX_PLAYERS);
 	private static SparseArray<LatLng> positions = new SparseArray<LatLng>(MAX_PLAYERS);
-	private static Marker markers[] = new Marker[MAX_PLAYERS];
+	private static SparseArray<Marker> markers = new SparseArray<Marker>(MAX_PLAYERS);
 	private static final Object positionsLock = new Object();
 
 	// event information
@@ -35,22 +36,18 @@ public class AppState {
 	private static boolean admin = false;
 
 	// general information
+	private static Context applicationContext;
 	private static String username;
 	private static String serverAddress = "50.62.212.171";
 	//private static String serverAddress = "192.168.1.11";
 
 	//Networks
 	private static Network eventServer = new Network(Type.EVENT, serverAddress, 33630);
-	private static Network fieldServer;
+	private static Network fieldServer = new Network(Type.MAP, serverAddress, 33640);
 
-	public static boolean networkBypass = false;
+	public static boolean networkBypass = true;
 
 	static {
-		// may not ever get packet that starts server
-		if (networkBypass) {
-			fieldServer = new Network(Type.EVENT, serverAddress, 33630);
-			fieldServer.start();
-		}
 		for (int i = 0; i < 2; i++) {
 			teamNames.add(i, new HashSet<String>(MAX_PLAYERS));
 		}
@@ -59,19 +56,23 @@ public class AppState {
 	@SuppressWarnings("unused")
 	private static String TAG = "State";
 
-	public static void initMapServer(int port) {
-		fieldServer = new Network(Type.MAP, serverAddress, port);
-	}
-
 	public static String getServerAddress() {
 		return serverAddress;
+	}
+
+	public static Context getApplicationContext() {
+		return applicationContext;
+	}
+
+	public static void setApplicationContext(Context applicationContext) {
+		AppState.applicationContext = applicationContext;
 	}
 
 	public static Network getEventServer() {
 		return eventServer;
 	}
 
-	public static Network getMapServer() {
+	public static Network getFieldServer() {
 		return fieldServer;
 	}
 
@@ -133,7 +134,7 @@ public class AppState {
 		return positionsLock;
 	}
 
-	public static Marker[] getMarkers() {
+	public static SparseArray<Marker> getMarkers() {
 		return markers;
 	}
 

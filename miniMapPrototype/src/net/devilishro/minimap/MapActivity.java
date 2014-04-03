@@ -2,6 +2,8 @@ package net.devilishro.minimap;
 
 import net.devilishro.minimap.EventActivity.Event;
 import net.devilishro.minimap.network.Network;
+import net.devilishro.minimap.network.PacketCreator;
+import net.devilishro.minimap.network.PacketHandlers;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
@@ -13,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
@@ -70,7 +73,7 @@ public class MapActivity extends Activity {
 			finish();
 			return;
 		}
-		map.moveCamera(CameraUpdateFactory.newLatLng(e.position));
+		map.moveCamera(CameraUpdateFactory.newLatLng(e.location));
 		map.moveCamera(CameraUpdateFactory.zoomTo(e.zoom));
 		map.setMyLocationEnabled(true);
 		map.getUiSettings().setMyLocationButtonEnabled(false);
@@ -78,7 +81,11 @@ public class MapActivity extends Activity {
 		handler = new Handler() {
 			@Override
 			public void handleMessage(Message m) {
-				displayPositions();
+				if (m.what == 0) {
+					displayPositions();
+				} else if (m.what == 1) {
+					finish();
+				}
 			}
 		};
 		provider = new LocationProvider(this);
@@ -124,10 +131,11 @@ public class MapActivity extends Activity {
 				int id = AppState.getPositions().keyAt(i);
 				if (AppState.getNames().get(id) != null
 						&& AppState.getPositions().get(id) != null) {
-					AppState.getMarkers()[i] = map
-							.addMarker(new MarkerOptions().snippet(
+					AppState.getMarkers().put(
+							id,
+							map.addMarker(new MarkerOptions().snippet(
 									AppState.getNames().get(id)).position(
-									AppState.getPositions().get(id)));
+									AppState.getPositions().get(id))));
 				}
 			}
 		}
@@ -154,7 +162,7 @@ public class MapActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		AppState.getMapServer().registerContext(this, Network.Activities.MAP);
+		AppState.getFieldServer().registerContext(this, Network.Activities.MAP);
 		if (provider != null && !provider.isRunning()) {
 			provider.start();
 		} else if (provider == null) {
@@ -166,7 +174,7 @@ public class MapActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		AppState.getMapServer().unregisterContext(Network.Activities.MAP);
+		AppState.getFieldServer().unregisterContext(Network.Activities.MAP);
 		if (provider != null) {
 			provider.close();
 			provider = null;
@@ -178,13 +186,30 @@ public class MapActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		// in case finish() is called
-		AppState.getMapServer().unregisterContext(Network.Activities.MAP);
+		AppState.getFieldServer().unregisterContext(Network.Activities.MAP);
 		if (provider != null) {
 			provider.close();
 			provider = null;
 		}
 		location.disconnect();
 		super.onDestroy();
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// If back button pushed, send leave field packet, let handler change
+		// activity
+		if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+			AppState.getEventServer().send(PacketCreator.fieldDisconnect());
+			if (AppState.networkBypass) {
+				PacketHandlers.fieldDisconnect.handlePacket(null, AppState
+						.getFieldServer(), AppState.getFieldServer()
+						.getContext());
+			}
+			return true;
+		} else {
+			return super.onKeyDown(keyCode, event);
+		}
 	}
 
 	/**
@@ -233,7 +258,7 @@ public class MapActivity extends Activity {
 		synchronized (AppState.getPositionsLock()) {
 			for (int i = 0; i < AppState.getPositions().size(); i++) {
 				int id = AppState.getPositions().keyAt(i);
-				Marker m = AppState.getMarkers()[i];
+				Marker m = AppState.getMarkers().get(id);
 				LatLng position = AppState.getPositions().get(id);
 				if (m != null && position != null) {
 					animateMarker(m, position, false);
