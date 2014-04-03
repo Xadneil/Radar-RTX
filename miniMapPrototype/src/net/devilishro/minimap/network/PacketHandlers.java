@@ -484,6 +484,21 @@ public class PacketHandlers {
 		}
 	};
 
+	public static PacketHandler playerInfo = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.PLAYER_INFO;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Activities, Activity> context) {
+			Player_state activity = (Player_state) context
+					.get(Network.Activities.PLAYER_LIST);
+			
+		}
+	};
+
 	public static PacketHandler fieldConnect = new PacketHandler() {
 		{
 			type = Type.MAP;
