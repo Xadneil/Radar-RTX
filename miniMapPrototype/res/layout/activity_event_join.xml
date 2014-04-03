@@ -8,7 +8,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".EventJoinActivity" >
+    tools:context=".EventJoinActivity" 
+    android:background="@drawable/back_two">
 
     <TextView
         android:id="@+id/event_join_name"
