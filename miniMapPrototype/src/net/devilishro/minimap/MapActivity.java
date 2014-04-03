@@ -65,7 +65,6 @@ public class MapActivity extends Activity {
 			finish();
 			return;
 		}
-		initialize();
 
 		// configure the map
 		Event e = AppState.getCurrentEvent();
@@ -123,22 +122,6 @@ public class MapActivity extends Activity {
 	 */
 	public Handler getHandler() {
 		return handler;
-	}
-
-	private void initialize() {
-		synchronized (AppState.getPositionsLock()) {
-			for (int i = 0; i < AppState.getPositions().size(); i++) {
-				int id = AppState.getPositions().keyAt(i);
-				if (AppState.getNames().get(id) != null
-						&& AppState.getPositions().get(id) != null) {
-					AppState.getMarkers().put(
-							id,
-							map.addMarker(new MarkerOptions().snippet(
-									AppState.getNames().get(id)).position(
-									AppState.getPositions().get(id))));
-				}
-			}
-		}
 	}
 
 	/**
@@ -260,7 +243,12 @@ public class MapActivity extends Activity {
 				int id = AppState.getPositions().keyAt(i);
 				Marker m = AppState.getMarkers().get(id);
 				LatLng position = AppState.getPositions().get(id);
-				if (m != null && position != null) {
+				if (position != null) {
+					if (m == null) {
+						m = map.addMarker(new MarkerOptions().snippet(
+								AppState.getNames().get(id)).position(
+								AppState.getPositions().get(id)));
+					}
 					animateMarker(m, position, false);
 				}
 			}

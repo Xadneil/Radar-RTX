@@ -42,8 +42,9 @@ public class AppState {
 	// general information
 	private static Context applicationContext;
 	private static String username;
-	private static String serverAddress = "50.62.212.171";
+	//private static String serverAddress = "50.62.212.171";
 	// private static String serverAddress = "192.168.1.11";
+	private static String serverAddress = "192.168.16.2";
 
 	// Networks
 	private static Network eventServer = new Network(Type.EVENT, serverAddress,
@@ -51,7 +52,7 @@ public class AppState {
 	private static Network fieldServer = new Network(Type.MAP, serverAddress,
 			33640);
 
-	public static boolean networkBypass = true;
+	public static boolean networkBypass = false;
 
 	static {
 		for (int i = 0; i < 2; i++) {

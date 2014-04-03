@@ -24,7 +24,8 @@ public class Player_state extends Activity {
 			if (msg.what == 0) {
 				String players[] = (String[]) msg.obj;
 				ListAdapter adapter = new ArrayAdapter<String>(
-						Player_state.this, R.id.player_list, players);
+						Player_state.this, android.R.layout.simple_list_item_1,
+						players);
 				list.setAdapter(adapter);
 			} else if (msg.what == 1) {
 				PlayerInfo info = (PlayerInfo) msg.obj;
@@ -61,6 +62,8 @@ public class Player_state extends Activity {
 		setContentView(R.layout.activity_player_state);
 		list = (ListView) findViewById(R.id.player_list);
 		list.setOnItemClickListener(listener);
+		list.setAdapter(new ArrayAdapter<String>(Player_state.this,
+				android.R.layout.simple_list_item_1, new String[0]));
 	}
 
 	@Override
@@ -78,14 +81,27 @@ public class Player_state extends Activity {
 				Network.Activities.PLAYER_LIST);
 	}
 
+	/**
+	 * Signals the activity to update the player list
+	 * @param names the names to be shown
+	 */
 	public void refresh(String[] names) {
 		handler.obtainMessage(0, names).sendToTarget();
 	}
 
+	/**
+	 * Signals the activity to display info about a player
+	 * @param info the information about the player
+	 */
 	public void info(PlayerInfo info) {
 		handler.obtainMessage(1, info).sendToTarget();
 	}
 
+	/**
+	 * Data collection for player information
+	 * 
+	 * @author Daniel
+	 */
 	public static class PlayerInfo {
 		public String name, login, event, team;
 	}

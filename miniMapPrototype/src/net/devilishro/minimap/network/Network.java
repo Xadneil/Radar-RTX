@@ -105,7 +105,8 @@ public class Network extends Thread {
 				Packet p = new Packet(smaller, bytesRead, true);
 				try {
 					short opcode = p.extract_short();
-					Log.d(TAG, "Got packet opcode " + Integer.toHexString(opcode));
+					Log.d(TAG,
+							"Got packet opcode " + Integer.toHexString(opcode));
 					PacketHandler handler = handlers.get(opcode);
 					// spin off a new thread to deal with handling
 					new PacketThread(handler, p, this, context).start();
@@ -140,7 +141,7 @@ public class Network extends Thread {
 		@Override
 		public void run() {
 			try {
-			handler.handlePacket(packet, network, context);
+				handler.handlePacket(packet, network, context);
 			} catch (Exception e) {
 				Log.e(TAG, "Error handling packet " + getName(), e);
 			}
@@ -182,6 +183,9 @@ public class Network extends Thread {
 		try {
 			if (isRunning && !socket.isClosed())
 				socket.getOutputStream().write(p.get_packet());
+			else if (!isRunning) {
+				Log.e(TAG, "Message tried to send when network wasn't ready!");
+			}
 		} catch (IOException e) {
 			Log.e(TAG, "Socket Send Error", e);
 		}
@@ -202,10 +206,19 @@ public class Network extends Thread {
 		context.clear();
 	}
 
+	/**
+	 * 
+	 * @return the map of activities to be used in packet handlers
+	 */
 	public HashMap<Activities, Activity> getContext() {
 		return context;
 	}
 
+	/**
+	 * Enumeration of Activity types for mapping in the context map
+	 * 
+	 * @author Daniel
+	 */
 	public enum Activities {
 		LOGIN, EVENT_LIST, EVENT_ADD, TEAM_JOIN, MAP, NOTIFICATION, REPLAY, PLAYER_LIST;
 	}

@@ -366,6 +366,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for joining a team
+	 */
 	public static PacketHandler teamJoin = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -406,6 +409,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for creating a notification
+	 */
 	public static PacketHandler eventNotificationCreate = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -432,6 +438,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for receiving a notification
+	 */
 	public static PacketHandler notification = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -459,6 +468,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for the list of players
+	 */
 	public static PacketHandler playerList = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -484,6 +496,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for player information
+	 */
 	public static PacketHandler playerInfo = new PacketHandler() {
 		{
 			type = Type.EVENT;
@@ -524,6 +539,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for connecting to the field server
+	 */
 	public static PacketHandler fieldConnect = new PacketHandler() {
 		{
 			type = Type.MAP;
@@ -546,6 +564,9 @@ public class PacketHandlers {
 		}
 	};
 
+	/**
+	 * Packet Handler for adding players to my team
+	 */
 	public static PacketHandler fieldPlayerAdd = new PacketHandler() {
 		{
 			type = Type.MAP;
@@ -561,12 +582,16 @@ public class PacketHandlers {
 				String name = packet.extract_string();
 				synchronized (AppState.getPositionsLock()) {
 					AppState.getNames().put(id, name);
+					// position and marker will be created next location packet
+					// (in MapActivity.java)
 				}
 			}
-			// TODO notify map?
 		}
 	};
 
+	/**
+	 * Packet Handler for removing players from my team
+	 */
 	public static PacketHandler fieldPlayerDel = new PacketHandler() {
 		{
 			type = Type.MAP;
@@ -581,12 +606,17 @@ public class PacketHandlers {
 				int id = packet.extract_int();
 				synchronized (AppState.getPositionsLock()) {
 					AppState.getNames().remove(id);
+					AppState.getPositions().remove(id);
+					AppState.getMarkers().get(id).remove();
+					AppState.getMarkers().remove(id);
 				}
 			}
-			// TODO notify map?
 		}
 	};
 
+	/**
+	 * Packet Handler for disconnecting from the field
+	 */
 	public static PacketHandler fieldDisconnect = new PacketHandler() {
 		{
 			type = Type.MAP;
