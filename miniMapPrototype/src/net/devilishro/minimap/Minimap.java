@@ -38,8 +38,6 @@ public class Minimap extends Activity {
 	public void onClickRegisterButton(View view) {
 		if (!isRegister) {
 			isRegister = true;
-			findViewById(R.id.password_confirm_text)
-					.setVisibility(View.VISIBLE);
 			login_pass_confirm.setVisibility(View.VISIBLE);
 			login_pass_confirm.requestFocus();
 		} else {
@@ -47,8 +45,6 @@ public class Minimap extends Activity {
 					.equals(login_pass_confirm.getText().toString())) {
 
 				isRegister = false;
-				findViewById(R.id.password_confirm_text).setVisibility(
-						View.INVISIBLE);
 				login_pass_confirm.setVisibility(View.INVISIBLE);
 
 				if (AppState.networkBypass) {
