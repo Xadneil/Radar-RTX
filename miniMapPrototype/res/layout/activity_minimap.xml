@@ -28,6 +28,7 @@
         android:layout_alignBottom="@+id/registerbut"
         android:layout_alignParentRight="true"
         android:onClick="onClickConnectButton"
+        android:background="@drawable/bu_menu"
         android:text="@string/loginbut" />
 
     <EditText
@@ -40,19 +41,6 @@
         android:inputType="textPassword"
         android:visibility="invisible" />
 
-    <EditText
-        android:id="@+id/userpass"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/loginbut"
-        android:layout_alignParentLeft="true"
-        android:layout_marginBottom="28dp"
-        android:ems="10"
-        android:inputType="textPassword" >
-
-        <requestFocus />
-    </EditText>
-
     <TextView
         android:id="@+id/password_confirm_text"
         android:layout_width="fill_parent"
@@ -61,23 +49,6 @@
         android:layout_alignParentLeft="true"
         android:text="Confirm Password"
         android:visibility="invisible" />
-
-    <TextView
-        android:id="@+id/textuserpass"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/userpass"
-        android:layout_alignParentLeft="true"
-        android:text="@string/loginpass" />
-
-    <TextView
-        android:id="@+id/textuseremail"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/useremail"
-        android:layout_alignParentLeft="true"
-        android:text="@string/logintext"
-        android:layout_marginTop="30dp" />
 
     <EditText
         android:id="@+id/useremail"
@@ -88,21 +59,42 @@
         android:ems="10"
         android:inputType="textEmailAddress" />
 
+    <TextView
+        android:id="@+id/textuseremail"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/useremail"
+        android:layout_alignParentLeft="true"
+        android:text="@string/logintext" />
+
+    <TextView
+        android:id="@+id/textuserpass"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/userpass"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="14dp"
+        android:text="@string/loginpass" />
+
+    <EditText
+        android:id="@+id/userpass"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/loginbut"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="37dp"
+        android:ems="10"
+        android:inputType="textPassword" />
+
     <Button
         android:id="@+id/registerbut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="77dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="96dp"
         android:onClick="onClickRegisterButton"
+        android:background="@drawable/bu_menu"
         android:text="@string/registerbut" />
-
-    <ImageView
-        android:id="@+id/imageView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/textuseremail"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/logo_final" />
 
 </RelativeLayout>
