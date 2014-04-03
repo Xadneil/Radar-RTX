@@ -99,8 +99,8 @@ public class EventActivity extends Activity {
 		menu.add(0, 2, 2, "Logout");
 		// Admin only options
 		if (AppState.isAdmin()) {
-			menu.add(0, 3, 3, "Event Add");
-			menu.add(0, 4, 4, "Event Notify");
+			menu.add(0, 3, 3, "Add Event");
+			menu.add(0, 4, 4, "Notifications");
 			menu.add(0, 5, 5, "Player List");
 		}
 		return true;

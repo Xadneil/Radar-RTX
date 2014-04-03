@@ -495,7 +495,32 @@ public class PacketHandlers {
 				HashMap<Activities, Activity> context) {
 			Player_state activity = (Player_state) context
 					.get(Network.Activities.PLAYER_LIST);
-			
+			int login = packet.extract_int();
+			String event = packet.extract_string();
+			String team = packet.extract_string();
+			Player_state.PlayerInfo pi = new Player_state.PlayerInfo();
+			pi.event = event;
+			pi.team = team;
+			String loginString;
+			switch (login) {
+			case 1:
+				loginString = "Logged Out";
+				break;
+			case 2:
+			case 3:
+				loginString = "In Event List";
+				break;
+			case 4:
+				loginString = "Selecting Team";
+				break;
+			case 5:
+				loginString = "In Game";
+				break;
+			default:
+				loginString = "";
+			}
+			pi.login = loginString;
+			activity.info(pi);
 		}
 	};
 

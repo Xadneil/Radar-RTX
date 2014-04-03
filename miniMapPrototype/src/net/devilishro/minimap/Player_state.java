@@ -32,22 +32,11 @@ public class Player_state extends Activity {
 				((TextView) Player_state.this.findViewById(R.id.player_login))
 						.setText(info.login);
 
-				if (info.event == null) {
-					((TextView) Player_state.this
-							.findViewById(R.id.player_event)).setText("N/A");
-				} else {
-					((TextView) Player_state.this
-							.findViewById(R.id.player_event))
-							.setText(info.event);
-				}
+				((TextView) Player_state.this.findViewById(R.id.player_event))
+						.setText(info.event);
 
-				if (info.team == null) {
-					((TextView) Player_state.this
-							.findViewById(R.id.player_team)).setText("N/A");
-				} else {
-					((TextView) Player_state.this
-							.findViewById(R.id.player_team)).setText(info.team);
-				}
+				((TextView) Player_state.this.findViewById(R.id.player_team))
+						.setText(info.team);
 			}
 		}
 	};
