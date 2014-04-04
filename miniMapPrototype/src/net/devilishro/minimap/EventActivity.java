@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -89,6 +90,22 @@ public class EventActivity extends Activity {
 		super.onPause();
 		AppState.getEventServer().unregisterContext(
 				Network.Activities.EVENT_LIST);
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// If back button pushed, send logout
+		if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+			AppState.setLoginOK(false);
+			AppState.getEventServer().send(PacketCreator.logout());
+			AppState.setUsername(null);
+			Intent i = new Intent(this, Minimap.class);
+			i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(i);
+			return true;
+		} else {
+			return super.onKeyDown(keyCode, event);
+		}
 	}
 
 	@Override

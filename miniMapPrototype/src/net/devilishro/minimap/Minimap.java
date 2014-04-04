@@ -107,7 +107,7 @@ public class Minimap extends Activity {
 					33620);
 		}
 		loginServer.registerContext(this, Network.Activities.LOGIN);
-		if (!loginServer.isRunning()) {
+		if (!loginServer.isRunning() && !loginServer.hasRun()) {
 			loginServer.start();
 		}
 	}
@@ -130,6 +130,11 @@ public class Minimap extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		if (loginServer != null) {
+			loginServer.unregisterContext(Network.Activities.LOGIN);
+			loginServer.close();
+			loginServer = null;
+		}
 	}
 
 	public void startEventActivity() {

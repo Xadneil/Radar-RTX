@@ -75,6 +75,13 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyD2qjB4w64f8x_jxf4tXjEYySmz-z4qzRQ" />
+
+        <activity
+            android:name="net.devilishro.minimap.EventLocation"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_event_location"
+            android:theme="@style/FullscreenTheme" >
+        </activity>
     </application>
 
 </manifest>

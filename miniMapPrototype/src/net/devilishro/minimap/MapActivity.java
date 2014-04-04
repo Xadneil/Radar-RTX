@@ -183,7 +183,7 @@ public class MapActivity extends Activity {
 		// If back button pushed, send leave field packet, let handler change
 		// activity
 		if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-			AppState.getEventServer().send(PacketCreator.fieldDisconnect());
+			AppState.getFieldServer().send(PacketCreator.fieldDisconnect());
 			if (AppState.networkBypass) {
 				PacketHandlers.fieldDisconnect.handlePacket(null, AppState
 						.getFieldServer(), AppState.getFieldServer()
@@ -244,7 +244,9 @@ public class MapActivity extends Activity {
 				Marker m = AppState.getMarkers().get(id);
 				LatLng position = AppState.getPositions().get(id);
 				if (position != null) {
+					// if position is null, haven't received location info yet.
 					if (m == null) {
+						// if marker is null, we just added this player
 						m = map.addMarker(new MarkerOptions().snippet(
 								AppState.getNames().get(id)).position(
 								AppState.getPositions().get(id)));

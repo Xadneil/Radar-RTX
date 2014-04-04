@@ -25,7 +25,7 @@ public class Network extends Thread {
 	private final int port;
 	private final HashMap<Activities, Activity> context = new HashMap<Activities, Activity>();
 	private final SparseArray<PacketHandler> handlers;
-	private boolean isRunning = false, isError = false;
+	private boolean isRunning = false, isError = false, hasRun = false;
 	private Socket socket;
 	private final String TAG;
 
@@ -50,6 +50,10 @@ public class Network extends Thread {
 		this.port = port;
 		handlers = PacketHandlers.getHandlers(type);
 		TAG = "Network for " + type.name();
+	}
+
+	public boolean hasRun() {
+		return hasRun;
 	}
 
 	/**
@@ -91,10 +95,12 @@ public class Network extends Thread {
 		byte buffer[] = new byte[BUFFER_SIZE];
 		int bytesRead;
 		isRunning = true;
+		hasRun = true;
 		while (isRunning && !socket.isClosed()) {
 			try {
 				bytesRead = socket.getInputStream().read(buffer);
 				if (bytesRead == -1) {
+					Log.e(TAG, "Stream ended");
 					close();
 					return;
 				} else if (bytesRead == BUFFER_SIZE) {
@@ -117,6 +123,7 @@ public class Network extends Thread {
 				Log.e(TAG, "Socket Receive Error", e);
 			}
 			if (Thread.interrupted()) {
+				Log.e(TAG, "Thread Interrupted");
 				close();
 			}
 		}
@@ -204,6 +211,7 @@ public class Network extends Thread {
 			// ignore any IOException or NullPointerException
 		}
 		context.clear();
+		Log.d(TAG, "Network closed");
 	}
 
 	/**

@@ -21,7 +21,6 @@
         <item>Team Death Match</item>
         <item>Clan War</item>
     </string-array>
-
     <string-array name="notificationLevel">
         <item>Low Priority</item>
         <item>High Priority</item>
@@ -33,5 +32,8 @@
     <string name="title_activity_player_state">Player List</string>
     <string name="title_activity_replay">Replay</string>
     <string name="title_activity_event_add">Add Event</string>
+    <string name="title_activity_event_location">EventLocation</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 
 </resources>

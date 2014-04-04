@@ -65,7 +65,6 @@ public class PacketHandlers {
 		public void handlePacket(Packet packet, final Network n,
 				final HashMap<Network.Activities, Activity> context) {
 			short status;
-
 			if (AppState.networkBypass) {
 				status = 0x1DA;
 			} else {
@@ -91,6 +90,9 @@ public class PacketHandlers {
 				// set username in AppState
 				activity.UIupdate.obtainMessage(4).sendToTarget();
 				if (!AppState.getEventServer().isRunning()) {
+					if (AppState.getEventServer().hasRun()) {
+						AppState.resetServers();
+					}
 					AppState.getEventServer().start();
 				}
 				AppState.getEventServer().registerContext(activity,
@@ -122,7 +124,6 @@ public class PacketHandlers {
 				}.start();
 				break;
 			}
-
 		}
 	};
 

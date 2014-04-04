@@ -42,9 +42,9 @@ public class AppState {
 	// general information
 	private static Context applicationContext;
 	private static String username;
-	//private static String serverAddress = "50.62.212.171";
+	private static String serverAddress = "50.62.212.171";
 	// private static String serverAddress = "192.168.1.11";
-	private static String serverAddress = "192.168.16.2";
+	// private static String serverAddress = "192.168.16.2";
 
 	// Networks
 	private static Network eventServer = new Network(Type.EVENT, serverAddress,
@@ -62,6 +62,13 @@ public class AppState {
 
 	@SuppressWarnings("unused")
 	private static String TAG = "State";
+
+	public static void resetServers() {
+		eventServer.close();
+		eventServer = new Network(Type.EVENT, serverAddress, 33630);
+		eventServer.close();
+		fieldServer = new Network(Type.MAP, serverAddress, 33640);
+	}
 
 	public static String getServerAddress() {
 		return serverAddress;

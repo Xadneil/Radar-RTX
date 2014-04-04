@@ -8,16 +8,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class EventAdd extends Activity {
-	String[] eventMatchTypeList;
 	TextView error;
 	@SuppressLint("HandlerLeak")
 	private Handler handler = new Handler() {
@@ -84,28 +80,14 @@ public class EventAdd extends Activity {
 		setContentView(R.layout.eventadd);
 
 		// setup spinner
-		eventMatchTypeList = getResources().getStringArray(
+		String eventMatchTypeList[] = getResources().getStringArray(
 				R.array.eventmatchtypelst);
 		error = (TextView) findViewById(R.id.event_add_error);
 		Spinner eventMatchTypeSpinner = (Spinner) findViewById(R.id.eventmatchtype);
 		ArrayAdapter<String> eventMatchTypeAdapter = new ArrayAdapter<String>(
 				this, android.R.layout.simple_spinner_item, eventMatchTypeList);
 		eventMatchTypeSpinner.setAdapter(eventMatchTypeAdapter);
-		eventMatchTypeSpinner
-				.setOnItemSelectedListener(new OnItemSelectedListener() {
-					@Override
-					public void onItemSelected(AdapterView<?> arg0, View arg1,
-							int position, long arg3) {
-						int index = arg0.getSelectedItemPosition();
-						Toast.makeText(getBaseContext(),
-								eventMatchTypeList[index], Toast.LENGTH_SHORT)
-								.show();
-					}
-
-					@Override
-					public void onNothingSelected(AdapterView<?> arg0) {
-					}
-				});
+		((EditText) findViewById(R.id.eventedit)).requestFocus();
 	}
 
 	@Override
