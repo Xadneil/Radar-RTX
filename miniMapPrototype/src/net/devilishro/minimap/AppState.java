@@ -52,7 +52,7 @@ public class AppState {
 	private static Network fieldServer = new Network(Type.MAP, serverAddress,
 			33640);
 
-	public static boolean networkBypass = false;
+	public static boolean networkBypass = true;
 
 	static {
 		for (int i = 0; i < 2; i++) {

@@ -11,7 +11,7 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:text="@string/eventname"
-	        android:textAppearance="?android:attr/textAppearanceLarge" />
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
 
 	    <EditText
 	        android:id="@+id/eventedit"
@@ -28,7 +28,7 @@
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:text="@string/teamonename"
-		    android:textAppearance="?android:attr/textAppearanceLarge" />
+		    android:textAppearance="?android:attr/textAppearanceMedium" />
 
 		<EditText
 	        android:id = "@+id/teamoneedit"
@@ -44,7 +44,7 @@
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:text="@string/teamtwoname"
-		    android:textAppearance="?android:attr/textAppearanceLarge" />
+		    android:textAppearance="?android:attr/textAppearanceMedium" />
 
 		<EditText
 	        android:id = "@+id/teamtwoedit"
@@ -59,7 +59,7 @@
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    android:text="Event Message:"
-	    android:textAppearance="?android:attr/textAppearanceLarge" />
+	    android:textAppearance="?android:attr/textAppearanceMedium" />
 
 	<EditText
 	    android:id="@+id/eventMessage"
@@ -75,6 +75,74 @@
 	    android:layout_width = "wrap_content"
 	    android:layout_height = "wrap_content"
 	    android:drawSelectorOnTop = "true" />
+
+	<TableRow
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" >
+
+		<TextView
+		    android:id="@+id/textView1"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:text="Location:"
+		    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+		<EditText
+		    android:id="@+id/locationedit"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:ems="10"
+		    android:inputType="text" />
+
+	</TableRow>
+
+	<TableRow
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" >
+
+	    <TextView
+	        android:id="@+id/TextView01"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Zoom:"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+	    <EditText
+	        android:id="@+id/zoomedit"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:inputType="text" />
+
+	</TableRow>
+
+	<TableRow
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content" >
+
+	    <TextView
+	        android:id="@+id/TextView02"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Bearing:"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+	    <EditText
+	        android:id="@+id/bearingedit"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:ems="10"
+	        android:inputType="text" />
+
+	</TableRow>
+
+	<Button
+	    android:id="@+id/eventLocationButton"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:onClick="onEventLocationClick"
+	    android:text="Set Location on Map" />
+
 	<Button
 	    android:id = "@+id/eventaddbut"
 	    android:layout_width = "fill_parent"

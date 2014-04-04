@@ -87,19 +87,27 @@ public class PacketCreator {
 	 *            type of event
 	 * @param message
 	 *            event details
+	 * @param bearing 
+	 * @param zoom 
+	 * @param lng 
+	 * @param lat 
 	 * @return the event-adding packet
 	 */
 	public static Packet addEvent(String name, String team1, String team2,
-			int type, String message) {
+			int type, String message, double lat, double lng, float zoom, float bearing) {
 		Packet ret = new Packet(2 + 4 + name.getBytes().length + 4
 				+ team1.getBytes().length + 4 + team2.getBytes().length + 4 + 4
-				+ message.getBytes().length);
+				+ message.getBytes().length + 8 + 8 + 4 + 4);
 		ret.pack_short(SendOpcode.EVENT_ADD.getValue());
 		ret.pack_string(name);
 		ret.pack_string(team1);
 		ret.pack_string(team2);
 		ret.pack_int(type);
 		ret.pack_string(message);
+		ret.pack_double(lat);
+		ret.pack_double(lng);
+		ret.pack_float(zoom);
+		ret.pack_float(bearing);
 		return ret;
 	}
 
