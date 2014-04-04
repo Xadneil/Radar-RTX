@@ -8,7 +8,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".Note_acti" >
+    tools:context=".Note_acti" 
+    android:background="@drawable/back_one_ori">
 
     <ListView
         android:id="@+id/player_list"
