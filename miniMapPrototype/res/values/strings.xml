@@ -35,5 +35,6 @@
     <string name="title_activity_event_location">EventLocation</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_replayer">ReplayerActivity</string>
 
 </resources>

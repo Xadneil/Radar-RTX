@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.local.ReplayDatabase;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketHandlers.Type;
 import android.content.Context;
@@ -53,6 +54,8 @@ public class AppState {
 			33640);
 
 	public static boolean networkBypass = true;
+	
+	public static ReplayDatabase db = new ReplayDatabase(applicationContext);
 
 	static {
 		for (int i = 0; i < 2; i++) {
@@ -158,5 +161,10 @@ public class AppState {
 
 	public static void setUsername(String username) {
 		AppState.username = username;
+	}
+
+	public static void add_db(int field_number, String temp) {
+		// TODO Auto-generated method stub
+		db.addPoints(temp, field_number);
 	}
 }
