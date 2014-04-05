@@ -1,4 +1,4 @@
-package net.devilshro.minimap.local;
+package net.devilishro.minimap.local;
 
 import java.util.ArrayList;
 import java.util.List;

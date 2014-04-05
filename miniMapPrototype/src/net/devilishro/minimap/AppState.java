@@ -66,7 +66,7 @@ public class AppState {
 	public static void resetServers() {
 		eventServer.close();
 		eventServer = new Network(Type.EVENT, serverAddress, 33630);
-		eventServer.close();
+		fieldServer.close();
 		fieldServer = new Network(Type.MAP, serverAddress, 33640);
 	}
 

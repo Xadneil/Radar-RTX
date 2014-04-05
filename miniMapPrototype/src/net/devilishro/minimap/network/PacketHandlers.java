@@ -257,23 +257,26 @@ public class PacketHandlers {
 			} catch (InterruptedException e) {
 			}
 			short data = packet.extract_short();
-			int whichTeam = (data & 0x0001) != 0 ? 0 : 1;
-			// add players
-			if ((data & 0x0010) != 0) {
-				int numPlayers = packet.extract_int();
-				for (int i = 0; i < numPlayers; i++) {
-					String playerName = packet.extract_string();
-					AppState.getTeamNames(whichTeam).add(playerName);
+
+			int t1 = packet.extract_int();
+			for (int i = 0; i < t1; i++) {
+				if ((data & 0x0010) != 0) // add
+					AppState.getTeamNames(0).add(packet.extract_string());
+				else { // delete
+					AppState.getTeamNames(0).remove(packet.extract_string());
 				}
-			} else { // delete players
-				int numPlayers = packet.extract_int();
-				for (int i = 0; i < numPlayers; i++) {
-					String playerName = packet.extract_string();
-					AppState.getTeamNames(whichTeam).remove(playerName);
+			}
+
+			int t2 = packet.extract_int();
+			for (int i = 0; i < t2; i++) {
+				if ((data & 0x0010) != 0) // add
+					AppState.getTeamNames(1).add(packet.extract_string());
+				else { // delete
+					AppState.getTeamNames(1).remove(packet.extract_string());
 				}
 			}
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN))
-					.refresh(whichTeam);
+					.refresh();
 		}
 	};
 
@@ -381,22 +384,23 @@ public class PacketHandlers {
 				HashMap<Activities, Activity> context) {
 			short status;
 			LatLng location;
-			float zoom;
+			float zoom, bearing;
 			if (AppState.networkBypass) {
 				status = 0x0001;
 				location = new LatLng(28.059891, -82.416183);
 				zoom = 17.0f;
+				bearing = 0;
 			} else {
 				status = packet.extract_short();
-				@SuppressWarnings("unused")
-				int port = packet.extract_int(); // do nothing
 				double lat = packet.extract_double();
 				double lng = packet.extract_double();
 				location = new LatLng(lat, lng);
 				zoom = packet.extract_float();
+				bearing = packet.extract_float();
 			}
 			AppState.getCurrentEvent().location = location;
 			AppState.getCurrentEvent().zoom = zoom;
+			AppState.getCurrentEvent().bearing = bearing;
 
 			Message m = ((EventJoinActivity) context
 					.get(Network.Activities.TEAM_JOIN)).handler.obtainMessage();

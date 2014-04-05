@@ -248,6 +248,7 @@ public class EventActivity extends Activity {
 		public int id;
 		public int type;
 		public String team1, team2;
+		public float bearing;
 
 		/**
 		 * Class Constructor
