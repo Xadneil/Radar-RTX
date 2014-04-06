@@ -19,7 +19,6 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -89,6 +88,7 @@ public class PacketHandlers {
 				AppState.setLoginOK(true);
 				// set username in AppState
 				activity.UIupdate.obtainMessage(4).sendToTarget();
+				// ensure network is running
 				if (!AppState.getEventServer().isRunning()) {
 					if (AppState.getEventServer().hasRun()) {
 						AppState.resetEventServer();
@@ -379,7 +379,6 @@ public class PacketHandlers {
 			if (status == 0x0001) {
 				AppState.getEventServer()
 						.send(PacketCreator.requestEventList());
-				Log.d("PacketHandlers", "Send event list request");
 				if (AppState.networkBypass) {
 					eventList.handlePacket(null, n, context);
 				}
@@ -387,6 +386,19 @@ public class PacketHandlers {
 				throw new RuntimeException(
 						"Event Server Connection Error (status:" + status + ")");
 			}
+		}
+	};
+
+	public static PacketHandler eventDisconnect = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.EVENT_DISCONNECT;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Network.Activities, Activity> context) {
+			// ignore
 		}
 	};
 
@@ -629,6 +641,24 @@ public class PacketHandlers {
 			for (int i = 0; i < toAdd; i++) {
 				int id = packet.extract_int();
 				String name = packet.extract_string();
+				MapActivity activity = (MapActivity) context
+						.get(Network.Activities.MAP);
+				int retries = 0;
+				if (activity == null) {
+					while (activity == null && retries < 5) {
+						activity = (MapActivity) context
+								.get(Network.Activities.MAP);
+						retries++;
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+						}
+					}
+					// if still not connected here, no hope for getting this
+					if (activity == null) {
+						return;
+					}
+				}
 				synchronized (AppState.getPositionsLock()) {
 					AppState.getNames().put(id, name);
 					// position and marker will be created next location packet
@@ -743,7 +773,7 @@ public class PacketHandlers {
 				Object field = fields[i].get(null);
 				// if the field is a PacketHandler, increment its corresponding
 				// numHandlers
-				if (field instanceof PacketHandler) {
+				if (field != null && field instanceof PacketHandler) {
 					PacketHandler handler = (PacketHandler) field;
 					numHandlers[handler.type.ordinal()]++;
 				}

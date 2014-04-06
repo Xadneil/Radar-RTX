@@ -275,7 +275,6 @@ public class MapActivity extends Activity {
 				}
 			}
 		}
-		Log.d("MapActivity", "positions displayed");
 	}
 
 	/**
