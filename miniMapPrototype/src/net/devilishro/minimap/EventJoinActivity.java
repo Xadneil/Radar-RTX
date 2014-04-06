@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -46,12 +45,14 @@ public class EventJoinActivity extends Activity {
 			if (msg.what == 0) {
 				finish();
 			} else if (msg.what == 1) {
-				int team = msg.arg1;
-				ListView view = team == 0 ? team1List : team2List;
-				view.setAdapter(new ArrayAdapter<String>(
+				team1List.setAdapter(new ArrayAdapter<String>(
 						EventJoinActivity.this,
 						android.R.layout.simple_list_item_1, AppState
-								.getTeamNames(team).toArray(new String[0])));
+								.getTeamNames(0).toArray(new String[0])));
+				team2List.setAdapter(new ArrayAdapter<String>(
+						EventJoinActivity.this,
+						android.R.layout.simple_list_item_1, AppState
+								.getTeamNames(1).toArray(new String[0])));
 			} else if (msg.what == 2) {
 				AppState.getFieldServer().registerContext(
 						EventJoinActivity.this, Network.Activities.TEAM_JOIN);
@@ -97,7 +98,7 @@ public class EventJoinActivity extends Activity {
 				}
 				if ((status & 0x0010) != 0 || (status & 0x0020) != 0) {
 					// already in event, team; shouldn't happen
-					throw new RuntimeException("Already in event or team!");
+					throw new RuntimeException("Already in event or team! status: " + Integer.toHexString(status));
 				}
 				if (!"".equals(error)) {
 					Toast.makeText(EventJoinActivity.this, error,
@@ -183,10 +184,8 @@ public class EventJoinActivity extends Activity {
 		return team2List;
 	}
 
-	public void refresh(int team) {
-		Message m = handler.obtainMessage(1);
-		m.arg1 = team;
-		m.sendToTarget();
+	public void refresh() {
+		handler.obtainMessage(1).sendToTarget();
 	}
 
 	@Override

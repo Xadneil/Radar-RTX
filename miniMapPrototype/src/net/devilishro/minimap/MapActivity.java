@@ -58,6 +58,7 @@ public class MapActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		setContentView(R.layout.activity_map);
 
 		// initialize the map and markers
@@ -74,8 +75,10 @@ public class MapActivity extends Activity {
 		}
 		map.moveCamera(CameraUpdateFactory.newLatLng(e.location));
 		map.moveCamera(CameraUpdateFactory.zoomTo(e.zoom));
+		// TODO bearing
 		map.setMyLocationEnabled(true);
 		map.getUiSettings().setMyLocationButtonEnabled(false);
+		map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
 		handler = new Handler() {
 			@Override
@@ -84,9 +87,17 @@ public class MapActivity extends Activity {
 					displayPositions();
 				} else if (m.what == 1) {
 					finish();
+				} else if (m.what == 2) {
+					AppState.getMarkers().get(m.arg1).remove();
+					AppState.getMarkers().remove(m.arg1);
+				} else if (m.what == 3) {
+					String message = (String) m.obj;
+					Toast.makeText(MapActivity.this, message,
+							Toast.LENGTH_SHORT).show();
 				}
 			}
 		};
+
 		provider = new LocationProvider(this);
 		location = new LocationClient(this,
 				new GooglePlayServicesClient.ConnectionCallbacks() {
@@ -129,7 +140,7 @@ public class MapActivity extends Activity {
 	 * 
 	 * @return a LatLng for the location
 	 */
-	public LatLng getLocation() {
+	public Location getLocation() {
 		if (!isGooglePlayConnected)
 			return null;
 		Location loc;
@@ -139,7 +150,7 @@ public class MapActivity extends Activity {
 			Log.e(TAG, "location failed", e);
 			return null;
 		}
-		return new LatLng(loc.getLatitude(), loc.getLongitude());
+		return loc;
 	}
 
 	@Override
@@ -241,17 +252,26 @@ public class MapActivity extends Activity {
 		synchronized (AppState.getPositionsLock()) {
 			for (int i = 0; i < AppState.getPositions().size(); i++) {
 				int id = AppState.getPositions().keyAt(i);
+				if (id == AppState.getMyId())
+					continue;
 				Marker m = AppState.getMarkers().get(id);
 				LatLng position = AppState.getPositions().get(id);
+				// if position is null, haven't received location info yet.
 				if (position != null) {
-					// if position is null, haven't received location info yet.
+					float rotation = AppState.getBearings().get(id) + 180;
+					if (rotation > 360) {
+						rotation -= 360;
+					}
 					if (m == null) {
-						// if marker is null, we just added this player
-						m = map.addMarker(new MarkerOptions().snippet(
-								AppState.getNames().get(id)).position(
-								AppState.getPositions().get(id)));
+						m = map.addMarker(new MarkerOptions()
+								.title(AppState.getNames().get(id))
+								.position(AppState.getPositions().get(id))
+								.rotation(rotation));
+						AppState.getMarkers().put(id, m);
+						Log.d(TAG, "Adding marker for player id " + id);
 					}
 					animateMarker(m, position, false);
+					m.setRotation(rotation);
 				}
 			}
 		}
@@ -304,5 +324,11 @@ public class MapActivity extends Activity {
 				}
 			}
 		});
+	}
+
+	public void remove(int id) {
+		Message m = handler.obtainMessage(2);
+		m.arg1 = id;
+		m.sendToTarget();
 	}
 }

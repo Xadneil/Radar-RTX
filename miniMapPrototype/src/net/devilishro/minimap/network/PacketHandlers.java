@@ -91,7 +91,7 @@ public class PacketHandlers {
 				activity.UIupdate.obtainMessage(4).sendToTarget();
 				if (!AppState.getEventServer().isRunning()) {
 					if (AppState.getEventServer().hasRun()) {
-						AppState.resetServers();
+						AppState.resetEventServer();
 					}
 					AppState.getEventServer().start();
 				}
@@ -182,7 +182,6 @@ public class PacketHandlers {
 					event.id = id;
 					event.title = title;
 					event.message = message;
-					event.type = type;
 					AppState.getEvents()[i] = event;
 				}
 			} else {
@@ -240,6 +239,45 @@ public class PacketHandlers {
 	};
 
 	/**
+	 * Packet Handler for event choice affirmation
+	 */
+	public static PacketHandler friend = new PacketHandler() {
+		{
+			type = Type.EVENT;
+			opcode = RecvOpcode.FRIEND;
+		}
+
+		@Override
+		public void handlePacket(Packet packet, Network n,
+				HashMap<Network.Activities, Activity> context) {
+			EventActivity activity = (EventActivity) context
+					.get(Network.Activities.EVENT_LIST);
+			int status;
+			if (AppState.networkBypass) {
+				return;
+			}
+			status = packet.extract_int();
+			int id = packet.extract_int();
+			String title = packet.extract_string();
+			String team1 = packet.extract_string();
+			String team2 = packet.extract_string();
+			for (int i = 0; i < AppState.getEvents().length; i++) {
+				Event e = AppState.getEvents()[i];
+				if (e.id == id) {
+					AppState.setCurrentEvent(i);
+				}
+			}
+			AppState.getCurrentEvent().title = title;
+			AppState.getCurrentEvent().team1 = team1;
+			AppState.getCurrentEvent().team2 = team2;
+			if (status != 0x0001) {
+				activity.eventFull();
+			}
+			activity.startJoinActivity();
+		}
+	};
+
+	/**
 	 * Packet Handler for single-event player list updates
 	 */
 	public static PacketHandler teamListUpdate = new PacketHandler() {
@@ -257,23 +295,26 @@ public class PacketHandlers {
 			} catch (InterruptedException e) {
 			}
 			short data = packet.extract_short();
-			int whichTeam = (data & 0x0001) != 0 ? 0 : 1;
-			// add players
-			if ((data & 0x0010) != 0) {
-				int numPlayers = packet.extract_int();
-				for (int i = 0; i < numPlayers; i++) {
-					String playerName = packet.extract_string();
-					AppState.getTeamNames(whichTeam).add(playerName);
+
+			int t1 = packet.extract_int();
+			for (int i = 0; i < t1; i++) {
+				if ((data & 0x0010) != 0) // add
+					AppState.getTeamNames(0).add(packet.extract_string());
+				else { // delete
+					AppState.getTeamNames(0).remove(packet.extract_string());
 				}
-			} else { // delete players
-				int numPlayers = packet.extract_int();
-				for (int i = 0; i < numPlayers; i++) {
-					String playerName = packet.extract_string();
-					AppState.getTeamNames(whichTeam).remove(playerName);
+			}
+
+			int t2 = packet.extract_int();
+			for (int i = 0; i < t2; i++) {
+				if ((data & 0x0010) != 0) // add
+					AppState.getTeamNames(1).add(packet.extract_string());
+				else { // delete
+					AppState.getTeamNames(1).remove(packet.extract_string());
 				}
 			}
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN))
-					.refresh(whichTeam);
+					.refresh();
 		}
 	};
 
@@ -381,22 +422,23 @@ public class PacketHandlers {
 				HashMap<Activities, Activity> context) {
 			short status;
 			LatLng location;
-			float zoom;
+			float zoom, bearing;
 			if (AppState.networkBypass) {
 				status = 0x0001;
 				location = new LatLng(28.059891, -82.416183);
 				zoom = 17.0f;
+				bearing = 0;
 			} else {
 				status = packet.extract_short();
-				@SuppressWarnings("unused")
-				int port = packet.extract_int(); // do nothing
 				double lat = packet.extract_double();
 				double lng = packet.extract_double();
 				location = new LatLng(lat, lng);
 				zoom = packet.extract_float();
+				bearing = packet.extract_float();
 			}
 			AppState.getCurrentEvent().location = location;
 			AppState.getCurrentEvent().zoom = zoom;
+			AppState.getCurrentEvent().bearing = bearing;
 
 			Message m = ((EventJoinActivity) context
 					.get(Network.Activities.TEAM_JOIN)).handler.obtainMessage();
@@ -553,12 +595,18 @@ public class PacketHandlers {
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
 			short status;
+			int myId;
 			if (AppState.networkBypass) {
 				status = 0x0001;
+				myId = 0;
 			} else {
 				status = packet.extract_short();
+				myId = packet.extract_int();
 			}
 			// TODO handle status
+
+			AppState.setMyId(myId);
+
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
 					.obtainMessage(4).sendToTarget();
 			n.unregisterContext(Network.Activities.TEAM_JOIN);
@@ -585,6 +633,10 @@ public class PacketHandlers {
 					AppState.getNames().put(id, name);
 					// position and marker will be created next location packet
 					// (in MapActivity.java)
+					((MapActivity) context.get(Network.Activities.MAP))
+							.getHandler()
+							.obtainMessage(3, "Player " + name + " joined.")
+							.sendToTarget();
 				}
 			}
 		}
@@ -606,10 +658,16 @@ public class PacketHandlers {
 			for (int i = 0; i < toAdd; i++) {
 				int id = packet.extract_int();
 				synchronized (AppState.getPositionsLock()) {
+					((MapActivity) context.get(Network.Activities.MAP))
+							.getHandler()
+							.obtainMessage(
+									3,
+									"Player " + AppState.getNames().get(id)
+											+ " left.").sendToTarget();
 					AppState.getNames().remove(id);
 					AppState.getPositions().remove(id);
-					AppState.getMarkers().get(id).remove();
-					AppState.getMarkers().remove(id);
+					((MapActivity) context.get(Network.Activities.MAP))
+							.remove(id);
 				}
 			}
 		}
@@ -630,6 +688,12 @@ public class PacketHandlers {
 			// stop map activity
 			((MapActivity) context.get(Network.Activities.MAP)).getHandler()
 					.obtainMessage(1).sendToTarget();
+			AppState.getFieldServer().close();
+			AppState.resetFieldServer();
+			AppState.getNames().clear();
+			AppState.getPositions().clear();
+			AppState.getBearings().clear();
+			AppState.getMarkers().clear();
 		}
 	};
 
@@ -645,15 +709,16 @@ public class PacketHandlers {
 		@Override
 		public void handlePacket(Packet packet, Network n,
 				HashMap<Activities, Activity> context) {
-			// TODO <j> <future> sync with packet specs
 			int numUpdates = packet.extract_int();
 			for (int i = 0; i < numUpdates; i++) {
 				int playerId = packet.extract_int();
 				double lat = packet.extract_double();
 				double lng = packet.extract_double();
+				float bearing = packet.extract_float();
 				LatLng ll = new LatLng(lat, lng);
 				synchronized (AppState.getPositionsLock()) {
 					AppState.getPositions().put(playerId, ll);
+					AppState.getBearings().put(playerId, bearing);
 				}
 			}
 			// tell Map to update
