@@ -1,7 +1,5 @@
 package net.devilishro.minimap.network;
 
-import java.util.ArrayList;
-
 import net.devilishro.minimap.AppState;
 
 /**
@@ -74,6 +72,12 @@ public class PacketCreator {
 		return ret;
 	}
 
+	public static Packet friend() {
+		Packet ret = new Packet(2);
+		ret.pack_short(SendOpcode.FRIENDFORCER.getValue());
+		return ret;
+	}
+
 	/**
 	 * Creates a packet for adding an event
 	 * 
@@ -87,14 +91,15 @@ public class PacketCreator {
 	 *            type of event
 	 * @param message
 	 *            event details
-	 * @param bearing 
-	 * @param zoom 
-	 * @param lng 
-	 * @param lat 
+	 * @param bearing
+	 * @param zoom
+	 * @param lng
+	 * @param lat
 	 * @return the event-adding packet
 	 */
 	public static Packet addEvent(String name, String team1, String team2,
-			int type, String message, double lat, double lng, float zoom, float bearing) {
+			int type, String message, double lat, double lng, float zoom,
+			float bearing) {
 		Packet ret = new Packet(2 + 4 + name.getBytes().length + 4
 				+ team1.getBytes().length + 4 + team2.getBytes().length + 4 + 4
 				+ message.getBytes().length + 8 + 8 + 4 + 4);
@@ -174,16 +179,11 @@ public class PacketCreator {
 		return ret;
 	}
 
-	public static Packet eventNotification(String message,
-			ArrayList<Integer> events) {
-		Packet ret = new Packet(2 + 4 + message.getBytes().length + 4 + 4
-				* events.size());
+	public static Packet eventNotification(String message, short urgency) {
+		Packet ret = new Packet(2 + 4 + message.getBytes().length + 2);
 		ret.pack_short(SendOpcode.EVENT_NOTIFICATION.getValue());
 		ret.pack_string(message);
-		ret.pack_int(events.size());
-		for (Integer i : events) {
-			ret.pack_int(i);
-		}
+		ret.pack_short(urgency);
 		return ret;
 	}
 
@@ -210,13 +210,15 @@ public class PacketCreator {
 	 *            latitude
 	 * @param lng
 	 *            longitude
+	 * @param bearing 
 	 * @return the update packet
 	 */
-	public static Packet reportLocation(double lat, double lng) {
-		Packet ret = new Packet(2 + 8 + 8);
+	public static Packet reportLocation(double lat, double lng, float bearing) {
+		Packet ret = new Packet(2 + 8 + 8 + 4);
 		ret.pack_short(SendOpcode.FIELD_LOCATION.getValue());
 		ret.pack_double(lat);
 		ret.pack_double(lng);
+		ret.pack_float(bearing);
 		return ret;
 	}
 }

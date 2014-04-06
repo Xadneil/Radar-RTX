@@ -27,6 +27,9 @@ public class AppState {
 			MAX_PLAYERS);
 	private static SparseArray<Marker> markers = new SparseArray<Marker>(
 			MAX_PLAYERS);
+	private static SparseArray<Float> bearing = new SparseArray<Float>(
+			MAX_PLAYERS);
+	private static int myId = -1;
 	private static final Object positionsLock = new Object();
 
 	// event information
@@ -52,7 +55,7 @@ public class AppState {
 	private static Network fieldServer = new Network(Type.MAP, serverAddress,
 			33640);
 
-	public static boolean networkBypass = true;
+	public static boolean networkBypass = false;
 
 	static {
 		for (int i = 0; i < 2; i++) {
@@ -63,9 +66,12 @@ public class AppState {
 	@SuppressWarnings("unused")
 	private static String TAG = "State";
 
-	public static void resetServers() {
+	public static void resetEventServer() {
 		eventServer.close();
 		eventServer = new Network(Type.EVENT, serverAddress, 33630);
+	}
+
+	public static void resetFieldServer() {
 		fieldServer.close();
 		fieldServer = new Network(Type.MAP, serverAddress, 33640);
 	}
@@ -80,6 +86,10 @@ public class AppState {
 
 	public static void setApplicationContext(Context applicationContext) {
 		AppState.applicationContext = applicationContext;
+	}
+
+	public static SparseArray<Float> getBearings() {
+		return bearing;
 	}
 
 	public static Network getEventServer() {
@@ -158,5 +168,13 @@ public class AppState {
 
 	public static void setUsername(String username) {
 		AppState.username = username;
+	}
+
+	public static void setMyId(int myId) {
+		AppState.myId = myId;
+	}
+
+	public static int getMyId() {
+		return myId;
 	}
 }

@@ -11,14 +11,6 @@
     tools:context=".Note_acti" 
     android:background="@drawable/back_one_ori">
 
-    <ListView
-        android:id="@+id/player_list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbarStyle="outsideOverlay"
-        android:choiceMode="multipleChoice" />
-
     <EditText
         android:id="@+id/notification"
         android:layout_width="match_parent"

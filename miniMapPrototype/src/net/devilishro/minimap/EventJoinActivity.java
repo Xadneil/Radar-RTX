@@ -98,7 +98,7 @@ public class EventJoinActivity extends Activity {
 				}
 				if ((status & 0x0010) != 0 || (status & 0x0020) != 0) {
 					// already in event, team; shouldn't happen
-					throw new RuntimeException("Already in event or team!");
+					throw new RuntimeException("Already in event or team! status: " + Integer.toHexString(status));
 				}
 				if (!"".equals(error)) {
 					Toast.makeText(EventJoinActivity.this, error,

@@ -1,10 +1,8 @@
 package net.devilishro.minimap;
 
 import net.devilishro.minimap.network.PacketCreator;
-
+import android.location.Location;
 import android.util.Log;
-
-import com.google.android.gms.maps.model.LatLng;
 
 /**
  * A location update thread. Sends the user's location to the map server every
@@ -13,7 +11,7 @@ import com.google.android.gms.maps.model.LatLng;
  * @author Daniel
  */
 public class LocationProvider extends Thread {
-	private static final int INTERVAL = 1000; // send location every INTERVAL ms
+	private static final int INTERVAL = 2000; // send location every INTERVAL ms
 	private boolean isRunning = false;
 	private final MapActivity act;
 
@@ -24,11 +22,13 @@ public class LocationProvider extends Thread {
 	@Override
 	public void run() {
 		while (isRunning) {
-			LatLng ll = act.getLocation();
-			if (ll != null) {
-				AppState.getFieldServer()
-						.send(PacketCreator.reportLocation(ll.latitude,
-								ll.longitude));
+			Location loc = act.getLocation();
+			if (loc != null) {
+				double lat = loc.getLatitude();
+				double lng = loc.getLongitude();
+				float bearing = loc.getBearing();
+				AppState.getFieldServer().send(
+						PacketCreator.reportLocation(lat, lng, bearing));
 			}
 			try {
 				Thread.sleep(INTERVAL);

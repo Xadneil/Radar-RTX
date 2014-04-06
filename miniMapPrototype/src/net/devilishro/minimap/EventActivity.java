@@ -74,6 +74,10 @@ public class EventActivity extends Activity {
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
 		Log.d("EventActivity", "State.getEvents(): "
 				+ (AppState.getEvents() == null ? "yes" : "no"));
+		if (AppState.getEvents() == null) {
+			finish();
+			return;
+		}
 		l.setAdapter(new EventAdapter(this));
 		l.setOnItemClickListener(clickListener);
 	}
@@ -134,8 +138,7 @@ public class EventActivity extends Activity {
 		}
 		case 1:// friendforcer
 		{
-			Intent i = new Intent(this, EventJoinActivity.class);
-			startActivity(i);
+			AppState.getEventServer().send(PacketCreator.friend());
 			break;
 		}
 		case 2:// logout
@@ -246,7 +249,6 @@ public class EventActivity extends Activity {
 		public LatLng location;
 		public float zoom;
 		public int id;
-		public int type;
 		public String team1, team2;
 		public float bearing;
 
