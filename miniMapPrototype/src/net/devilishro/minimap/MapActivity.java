@@ -1,6 +1,7 @@
 package net.devilishro.minimap;
 
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.local.DatabaseHandler;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
@@ -251,9 +252,12 @@ public class MapActivity extends Activity {
 								AppState.getNames().get(id)).position(
 								AppState.getPositions().get(id)));
 					}
-					animateMarker(m, position, false);
+					animateMarker(m, position, false);	
+					
+					DatabaseHandler.add_point(position, id);
 				}
 			}
+			//DatabaseHandler.send_db();
 		}
 		Log.d("MapActivity", "positions displayed");
 	}

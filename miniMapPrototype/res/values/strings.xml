@@ -36,5 +36,7 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_replayer">ReplayerActivity</string>
+    <string name="replay_play">Play</string>
+    <string name="replay_pause">Pause</string>
 
 </resources>

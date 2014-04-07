@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.devilishro.minimap.AppState;
+import android.content.ContentValues;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -11,21 +12,16 @@ public class DatabaseHandler {
 	
 	private static List<LatLng> pos = new ArrayList<LatLng>();
 	
-	public static void add_point(LatLng point){
-		pos.add(point);
+	public static void add_point(LatLng point, int p_number){
+		AppState.add_db(point, p_number, 0);
 	}
 	
-	public static void send_db(int field_number){
-		String temp = null;
-		LatLng temp_two = null;
-		
-		for(int i = 0; i < pos.size(); i++)
-		{
-			temp_two = pos.get(i);
-			temp += temp_two.latitude + ":" + temp_two.longitude + ";";
-		}
-		
-		AppState.add_db(field_number, temp);
+	public static void send_db(){
+		AppState.add_db(null, -1, 1); //to set the place holder between a interval of points
+	}
+	
+	public static ArrayList<ContentValues> recv_db(int last_saved){
+		return AppState.recv_points(last_saved);
 	}
 
 }
