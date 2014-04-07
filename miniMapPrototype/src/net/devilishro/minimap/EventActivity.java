@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -72,8 +71,6 @@ public class EventActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event);
 		ListView l = (ListView) this.findViewById(R.id.eventListView);
-		Log.d("EventActivity", "State.getEvents(): "
-				+ (AppState.getEvents() == null ? "yes" : "no"));
 		if (AppState.getEvents() == null) {
 			finish();
 			return;

@@ -107,7 +107,7 @@ public class EventJoinActivity extends Activity {
 				}
 			} else if (msg.what == 4) {
 				Intent i = new Intent(EventJoinActivity.this, MapActivity.class);
-				startActivity(i);
+				startActivityForResult(i, 0);
 			}
 		}
 	};
@@ -173,6 +173,13 @@ public class EventJoinActivity extends Activity {
 			return true;
 		} else {
 			return super.onKeyDown(keyCode, event);
+		}
+	}
+
+	@Override
+	public void onActivityResult(int origin, int result, Intent i) {
+		if (origin == 0) {
+			finish();
 		}
 	}
 

@@ -100,7 +100,6 @@ public class Network extends Thread {
 			try {
 				bytesRead = socket.getInputStream().read(buffer);
 				if (bytesRead == -1) {
-					Log.e(TAG, "Stream ended");
 					close();
 					return;
 				} else if (bytesRead == BUFFER_SIZE) {
@@ -111,8 +110,6 @@ public class Network extends Thread {
 				Packet p = new Packet(smaller, bytesRead, true);
 				try {
 					short opcode = p.extract_short();
-					Log.d(TAG,
-							"Got packet opcode " + Integer.toHexString(opcode));
 					PacketHandler handler = handlers.get(opcode);
 					// spin off a new thread to deal with handling
 					new PacketThread(handler, p, this, context).start();
@@ -121,6 +118,7 @@ public class Network extends Thread {
 				}
 			} catch (IOException e) {
 				Log.e(TAG, "Socket Receive Error", e);
+				close();
 			}
 			if (Thread.interrupted()) {
 				Log.e(TAG, "Thread Interrupted");
@@ -211,7 +209,6 @@ public class Network extends Thread {
 			// ignore any IOException or NullPointerException
 		}
 		context.clear();
-		Log.d(TAG, "Network closed");
 	}
 
 	/**
