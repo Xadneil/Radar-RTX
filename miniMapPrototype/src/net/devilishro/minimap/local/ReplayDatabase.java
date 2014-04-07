@@ -129,7 +129,7 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 			count_one++;
 		}
 		db.close();
-		Log.d(TAG, "Added player id " + recv_points.get(1).getAsInteger(Column_playerID) + " to the list");
+		Log.d(TAG, "Added player id " + recv_points.get(0).getAsInteger(Column_playerID) + " to the list");
 		return recv_points;
 
 	}

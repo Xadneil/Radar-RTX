@@ -6,6 +6,7 @@ import net.devilishro.minimap.local.ReplayDatabase;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.ContentValues;
+import android.database.CursorIndexOutOfBoundsException;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,18 +40,21 @@ public class ReplayerActivity extends Activity {
 	private int counter = 1;
 	private SparseArray<Marker> mark = new SparseArray<Marker>();
 	protected boolean isGooglePlayConnected;
+	private boolean is_running;
 	private Handler handler;
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.rplay) {
+			if(is_running)
+				return true;
 			new Thread() {
 				public void run() {
 					int i = 0;
-
-					while (true) {
+					is_running = true;
+					while (is_running) {
 					try {
-						Thread.sleep(200);
+						Thread.sleep(2000);
 						handler.obtainMessage(1).sendToTarget();
 						i++;
 					} catch (Exception e) {
@@ -61,11 +65,12 @@ public class ReplayerActivity extends Activity {
 					}
 				}
 			}.start();
-			return true;
 		} else if (item.getItemId() == R.id.resetter) {
 			AppState.reset_db();
+		} else if(item.getItemId() == R.id.rpause){
+			is_running = false;
 		}
-		return super.onOptionsItemSelected(item);
+		return true;
 	}
 
 	@Override
@@ -134,13 +139,21 @@ public class ReplayerActivity extends Activity {
 
 	private void set_map_impl(LatLng latLng) {
 		map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-		map.moveCamera(CameraUpdateFactory.zoomTo(3));
+		map.moveCamera(CameraUpdateFactory.zoomTo(16));
 		map.setMyLocationEnabled(true);
 		map.getUiSettings().setMyLocationButtonEnabled(false);
 	}
 
 	private void next_post() {
-		ArrayList<ContentValues> temp = AppState.recv_points(counter);
+		ArrayList<ContentValues> temp = null;
+		try{
+			temp = AppState.recv_points(counter);
+		} catch(CursorIndexOutOfBoundsException e)
+		{
+			is_running = false;
+			counter = 1;
+			return;
+		}
 		Log.d(TAG, "The original id"+ temp.get(0).getAsDouble(ReplayDatabase.Column_playerID));
 		ContentValues cur_pos = null;
 		LatLng pos = new LatLng(0, 0);

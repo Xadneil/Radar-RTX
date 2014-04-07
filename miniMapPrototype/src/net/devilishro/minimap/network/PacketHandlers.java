@@ -618,6 +618,7 @@ public class PacketHandlers {
 			// TODO handle status
 
 			AppState.setMyId(myId);
+			AppState.reset_db();
 
 			((EventJoinActivity) context.get(Network.Activities.TEAM_JOIN)).handler
 					.obtainMessage(4).sendToTarget();
