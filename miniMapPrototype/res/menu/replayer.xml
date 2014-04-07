@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_settings">
+        <menu></menu>
+    </item>
+    <item android:id="@+id/rplay" android:title="@string/replay_play"></item>
+    <item android:id="@+id/rpause" android:title="@string/replay_pause"></item>
+
+</menu>

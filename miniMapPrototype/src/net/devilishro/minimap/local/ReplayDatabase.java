@@ -1,13 +1,15 @@
 package net.devilishro.minimap.local;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
 
 /*********************************************************
  * 
@@ -22,10 +24,15 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	private static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "replay_database";
 	private static final String TABLE_ONE = "Field One";
-	private static final String TABLE_TWO = "Field Two";
-	private static final String TABLE_THREE = "Field Three";
-	private static final String KEY_ID = "id";
-	private static final String KEY_NAME = "Pos_Data";
+	public static final String KEY_ID = "id";
+	public static final String KEY_NAME1 = "Pos_PID";
+	public static final String KEY_NAME2 = "Pos_Lat";
+	public static final String KEY_NAME3 = "Pos_Long";
+	public static final String KEY_NAME4 = "Pos_End";
+	private final String TAG = "ReplayDatabase";
+	private int key_count = 0;
+	
+	
 	
 	public ReplayDatabase(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -35,7 +42,8 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db){
 		String CREATE_TABLE = "CREATE TABLE " + TABLE_ONE + "(" 
-				+ KEY_ID + "INTEGER PRIMARY KEY," + KEY_NAME + "TEXT" + ")";
+				+ KEY_ID + "INTEGER PRIMARY KEY," + KEY_NAME1 + "INTEGER" + KEY_NAME2 + "REAL" + KEY_NAME3
+				+ "REAL" + KEY_NAME4 + "INTEGER" + ")";
 		db.execSQL(CREATE_TABLE);
 	}
 	
@@ -46,72 +54,66 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	}
 	
 	//add a string of all the points the match gives.
-	public void addPoints(String points, int field_number){
+	public void addPoints(LatLng points, int player, int end){
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		ContentValues input = new ContentValues();
-		input.put(KEY_NAME, points);
-			
-		switch(field_number){
-		case 1:
-			db.insert(TABLE_ONE, null, input);
-			break;
-		case 2:
-			db.insert(TABLE_TWO, null, input);
-			break;
-		case 3:
-			db.insert(TABLE_THREE, null, input);
-			break;
-		}
-		
+		//input.put(KEY_ID, key_count);
+		input.put(KEY_NAME1, player);
+		input.put(KEY_NAME2, points.latitude);
+		input.put(KEY_NAME3, points.longitude);
+		if(end == 1)
+			input.put(KEY_NAME4, 1);
+		else
+			input.put(KEY_NAME4, 0);
+		Log.d(TAG, "About to add points to db");
+		db.insert(TABLE_ONE, null, input);
+		key_count++;
 		db.close();
 	}
 	
-	//Returns a string of all the points saved
-	public List<String> readPoints(int field_number) {
-		List<String> all_points = new ArrayList<String>();
+	
+	//Returns a string of all the points saved for a certain time
+	public ArrayList<ContentValues> readPoints(int count) {
 		SQLiteDatabase db = this.getWritableDatabase();
+		ArrayList<ContentValues> recv_points = new ArrayList<ContentValues>();
+		ContentValues temp = new ContentValues();
+		boolean run = true;
 		String select = null;
 		Cursor curs = null;
-		switch(field_number){
-			case 1:
-				select = "SELECT * FROM " + TABLE_ONE;
-				break;
-			case 2:
-				select = "SELECT * FROM " + TABLE_TWO;
-				break;
-			case 3:
-				select = "SELECT * FROM " + TABLE_THREE;
-				break;
-		}
-		
-		if(select != null){
-			curs = db.rawQuery(select, null);
+		int check = 0;
+		int count_one = count;
+		while(run)
+		{
+			curs = db.query(TABLE_ONE, new String[] { KEY_ID, KEY_NAME1, KEY_NAME2, KEY_NAME3, KEY_NAME4}, KEY_ID + "=?", new String[] { String.valueOf(count_one) }, null, null, null, null);
+			if(curs != null)
+				curs.moveToFirst();
 			
-			if(curs.moveToFirst())
+			temp.put(KEY_ID, Integer.parseInt(curs.getString(0)));
+			temp.put(KEY_NAME1, Integer.parseInt(curs.getString(1)));
+			temp.put(KEY_NAME2, Double.parseDouble(curs.getString(2)));
+			temp.put(KEY_NAME3, Double.parseDouble(curs.getString(3)));
+			temp.put(KEY_NAME4, Integer.parseInt(curs.getString(4)));
+			
+			check = (Integer) temp.get(KEY_NAME4);
+			if (check == 1)
 			{
-				do
-				{
-					all_points.add(curs.getString(1));
-				}while(curs.moveToLast());
+				run = false;
+				break; //i know it does the same as the prev instruction
+			} 
+			else
+			{
+				recv_points.add(temp);
 			}
+			count_one++;
 		}
-		return all_points;	
+		db.close();
+		return recv_points;
+		
 	}
 	//wipes the db for next match
 	public void resetDatabase(int field_number){
 		SQLiteDatabase db = this.getWritableDatabase();
-		
-		switch(field_number){
-		case 1:
-			db.delete(TABLE_ONE, null, null);
-			break;
-		case 2:
-			db.delete(TABLE_TWO, null, null);
-			break;
-		case 3:
-			db.delete(TABLE_THREE, null, null);
-			break;
-		}
+		db.delete(TABLE_ONE, null, null);	
 	}
 };

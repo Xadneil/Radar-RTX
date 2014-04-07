@@ -1,6 +1,7 @@
 package net.devilishro.minimap;
 
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.local.DatabaseHandler;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketCreator;
 import net.devilishro.minimap.network.PacketHandlers;
@@ -270,10 +271,14 @@ public class MapActivity extends Activity {
 						AppState.getMarkers().put(id, m);
 						Log.d(TAG, "Adding marker for player id " + id);
 					}
+
 					animateMarker(m, position, false);
 					m.setRotation(rotation);
+
+					DatabaseHandler.add_point(position, id);
 				}
 			}
+			//DatabaseHandler.send_db();
 		}
 	}
 

@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import net.devilishro.minimap.EventActivity.Event;
+import net.devilishro.minimap.local.ReplayDatabase;
 import net.devilishro.minimap.network.Network;
 import net.devilishro.minimap.network.PacketHandlers.Type;
+import android.content.ContentValues;
 import android.content.Context;
 import android.util.SparseArray;
 
@@ -46,7 +48,7 @@ public class AppState {
 	private static Context applicationContext;
 	private static String username;
 	private static String serverAddress = "50.62.212.171";
-	// private static String serverAddress = "192.168.1.11";
+    //private static String serverAddress = "192.168.1.13";
 	// private static String serverAddress = "192.168.16.2";
 
 	// Networks
@@ -56,6 +58,8 @@ public class AppState {
 			33640);
 
 	public static boolean networkBypass = false;
+
+	private static ReplayDatabase db = new ReplayDatabase(applicationContext);
 
 	static {
 		for (int i = 0; i < 2; i++) {
@@ -170,11 +174,22 @@ public class AppState {
 		AppState.username = username;
 	}
 
+<<<<<<< HEAD
 	public static void setMyId(int myId) {
 		AppState.myId = myId;
 	}
 
 	public static int getMyId() {
 		return myId;
+=======
+	public static void add_db(LatLng point, int play_num, int div) {
+		// TODO Auto-generated method stub
+		db.addPoints(point, play_num, div);
+	}
+	
+	public static ArrayList<ContentValues> recv_points(int counter)
+	{
+		return db.readPoints(counter);
+>>>>>>> Replay
 	}
 }
