@@ -55,6 +55,7 @@ public class ReplayerActivity extends Activity {
 					Thread.sleep(200);
 					next_post();
 				}catch(Exception e){
+					Log.e(TAG, "Error", e);
 					break;
 				}
 			}
