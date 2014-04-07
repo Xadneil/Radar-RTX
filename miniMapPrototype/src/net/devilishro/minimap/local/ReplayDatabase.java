@@ -23,7 +23,7 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 
 	private static final int DATABASE_VERSION = 1;
 	private static final String DATABASE_NAME = "replay_database";
-	private static final String TABLE_ONE = "Field One";
+	private static final String TABLE_ONE = "\"Field One\"";
 	public static final String KEY_ID = "id";
 	public static final String KEY_NAME1 = "Pos_PID";
 	public static final String KEY_NAME2 = "Pos_Lat";
@@ -41,9 +41,9 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	
 	@Override
 	public void onCreate(SQLiteDatabase db){
-		String CREATE_TABLE = "CREATE TABLE " + TABLE_ONE + "(" 
-				+ KEY_ID + "INTEGER PRIMARY KEY," + KEY_NAME1 + "INTEGER" + KEY_NAME2 + "REAL" + KEY_NAME3
-				+ "REAL" + KEY_NAME4 + "INTEGER" + ")";
+		String CREATE_TABLE = "CREATE TABLE " + TABLE_ONE + " (" 
+				+ KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + KEY_NAME1 + " INTEGER, " + KEY_NAME2 + " REAL, " + KEY_NAME3
+				+ " REAL, " + KEY_NAME4 + " INTEGER" + ")";
 		db.execSQL(CREATE_TABLE);
 	}
 	

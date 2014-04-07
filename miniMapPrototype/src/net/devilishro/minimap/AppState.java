@@ -59,7 +59,7 @@ public class AppState {
 
 	public static boolean networkBypass = false;
 
-	private static ReplayDatabase db = new ReplayDatabase(applicationContext);
+	private static ReplayDatabase db;
 
 	static {
 		for (int i = 0; i < 2; i++) {
@@ -90,6 +90,7 @@ public class AppState {
 
 	public static void setApplicationContext(Context applicationContext) {
 		AppState.applicationContext = applicationContext;
+		 db = new ReplayDatabase(applicationContext);
 	}
 
 	public static SparseArray<Float> getBearings() {
