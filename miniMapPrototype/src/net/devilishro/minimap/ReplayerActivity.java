@@ -83,6 +83,7 @@ public class ReplayerActivity extends Activity {
 			finish();
 			return;
 		}
+		//map.set
 
 		handler = new Handler() {
 			@Override
@@ -139,7 +140,7 @@ public class ReplayerActivity extends Activity {
 
 	private void set_map_impl(LatLng latLng) {
 		map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-		map.moveCamera(CameraUpdateFactory.zoomTo(16));
+		map.moveCamera(CameraUpdateFactory.zoomTo(18));
 		//map.setMyLocationEnabled(true);
 		//map.getUiSettings().setMyLocationButtonEnabled(false);
 	}
@@ -150,6 +151,7 @@ public class ReplayerActivity extends Activity {
 			temp = AppState.recv_points(counter);
 		} catch(CursorIndexOutOfBoundsException e)
 		{
+			Toast.makeText(this, "Replay has failed to start.", Toast.LENGTH_SHORT).show();
 			is_running = false;
 			counter = 0;
 			return;

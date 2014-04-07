@@ -61,11 +61,6 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="net.devilishro.minimap.Replay"
-            android:label="@string/title_activity_replay"
-            android:screenOrientation="portrait" >
-        </activity>
-        <activity
             android:name="net.devilishro.minimap.MapActivity"
             android:screenOrientation="portrait" >
         </activity>
