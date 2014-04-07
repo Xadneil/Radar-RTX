@@ -253,10 +253,12 @@ public class MapActivity extends Activity {
 		synchronized (AppState.getPositionsLock()) {
 			for (int i = 0; i < AppState.getPositions().size(); i++) {
 				int id = AppState.getPositions().keyAt(i);
+				LatLng position = AppState.getPositions().get(id);
+				DatabaseHandler.add_point(position, id);
 				if (id == AppState.getMyId())
 					continue;
 				Marker m = AppState.getMarkers().get(id);
-				LatLng position = AppState.getPositions().get(id);
+				
 				// if position is null, haven't received location info yet.
 				if (position != null) {
 					float rotation = AppState.getBearings().get(id) + 180;
@@ -274,8 +276,6 @@ public class MapActivity extends Activity {
 
 					animateMarker(m, position, false);
 					m.setRotation(rotation);
-
-					DatabaseHandler.add_point(position, id);
 				}
 			}
 			DatabaseHandler.send_db();
