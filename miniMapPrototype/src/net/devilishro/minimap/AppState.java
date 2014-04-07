@@ -188,6 +188,10 @@ public class AppState {
 		db.addPoints(point, play_num, div);
 	}
 	
+	public static void reset_db(){
+		db.resetDatabase();
+	}
+	
 	public static ArrayList<ContentValues> recv_points(int counter)
 	{
 		return db.readPoints(counter);

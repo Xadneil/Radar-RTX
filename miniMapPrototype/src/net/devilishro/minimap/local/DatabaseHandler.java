@@ -23,5 +23,6 @@ public class DatabaseHandler {
 	public static ArrayList<ContentValues> recv_db(int last_saved){
 		return AppState.recv_points(last_saved);
 	}
+	
 
 }

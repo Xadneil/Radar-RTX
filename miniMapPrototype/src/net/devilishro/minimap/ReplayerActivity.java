@@ -49,22 +49,25 @@ public class ReplayerActivity extends Activity {
 				public void run() {
 					int i = 0;
 
-					while (true) {
+					//while (true) {
 						try {
-							Thread.sleep(200);
+							//Thread.sleep(200);
 							handler.obtainMessage(1).sendToTarget();
 							i++;
 						} catch (Exception e) {
 							Log.e(TAG, "pos's displayed: " + i);
 							Log.e(TAG, "Error", e);
-							break;
+							//break;
 						}
-					}
+					//}
 				}
 			}.start();
 			Log.d(TAG, "This at least works");
 			return true;
-		} else
+		} else if(item.getItemId() == R.id.resetter)
+		{
+			AppState.reset_db();
+		}
 			return super.onOptionsItemSelected(item);
 	}
 
@@ -157,7 +160,7 @@ public class ReplayerActivity extends Activity {
 	}
 
 	private void next_post() {
-		ArrayList<ContentValues> temp = AppState.recv_points(counter); // list
+		ArrayList<ContentValues> temp = AppState.recv_points(0); // list
 																		// of
 																		// info
 																		// from
@@ -177,11 +180,15 @@ public class ReplayerActivity extends Activity {
 		for (int i = 0; i < temp.size(); i++) {
 			cur_pos = temp.get(i); // gets ith player
 			if (i == 0)
+			{
 				set_map(new LatLng(
 						cur_pos.getAsDouble(ReplayDatabase.KEY_NAME2),
 						cur_pos.getAsDouble(ReplayDatabase.KEY_NAME3)));
+			}
 			id = (Integer) cur_pos.get(ReplayDatabase.KEY_NAME1);
 			val = mark.get(id); // gets the marker
+			Log.d(TAG, String.valueOf(cur_pos.getAsDouble(ReplayDatabase.KEY_NAME4)));
+			Log.d(TAG, String.valueOf(cur_pos.getAsDouble(ReplayDatabase.KEY_NAME4)));
 			if (val == null) { // new player for the replay
 				val = map.addMarker(new MarkerOptions().snippet(
 						AppState.getNames().get(id)).position(pos));

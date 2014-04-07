@@ -30,7 +30,7 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	public static final String KEY_NAME3 = "Pos_Long";
 	public static final String KEY_NAME4 = "Pos_End";
 	private final String TAG = "ReplayDatabase";
-	private int key_count = 0;
+	private int key_count = 0; 	
 	
 	
 	
@@ -42,7 +42,7 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db){
 		String CREATE_TABLE = "CREATE TABLE " + TABLE_ONE + " (" 
-				+ KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + KEY_NAME1 + " INTEGER, " + KEY_NAME2 + " REAL, " + KEY_NAME3
+				+ KEY_ID + " INTEGER PRIMARY KEY, " + KEY_NAME1 + " INTEGER, " + KEY_NAME2 + " REAL, " + KEY_NAME3
 				+ " REAL, " + KEY_NAME4 + " INTEGER" + ")";
 		db.execSQL(CREATE_TABLE);
 	}
@@ -56,9 +56,9 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 	//add a string of all the points the match gives.
 	public void addPoints(LatLng points, int player, int end){
 		SQLiteDatabase db = this.getWritableDatabase();
-		
 		ContentValues input = new ContentValues();
-		//input.put(KEY_ID, key_count);
+		long result = -1;
+		input.put(KEY_ID, key_count);
 		input.put(KEY_NAME1, player);
 		input.put(KEY_NAME2, points.latitude);
 		input.put(KEY_NAME3, points.longitude);
@@ -67,9 +67,19 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 		else
 			input.put(KEY_NAME4, 0);
 		Log.d(TAG, "About to add points to db");
-		long result = db.insert(TABLE_ONE, null, input);
+		db.beginTransaction();
+		try{
+			result = db.insert(TABLE_ONE, null, input);
+			db.setTransactionSuccessful();
+		}finally{
+			db.endTransaction();
+		}
 		
-			Log.d(TAG, "Inserted " + result);
+		Log.d(TAG, "Inserted Player name" + player);
+		Log.d(TAG, "Inserted " + points.latitude);
+		Log.d(TAG, "Inserted " + points.longitude);
+		Log.d(TAG, "Inserted " + result);
+		
 		key_count++;
 		db.close();
 	}
@@ -99,6 +109,9 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 			temp.put(KEY_NAME3, curs.getDouble(3));
 			temp.put(KEY_NAME4, curs.getInt(4));
 			
+			Log.d(TAG, "Name equals: " + curs.getInt(1));
+			Log.d(TAG, "Latitude equals: " + curs.getDouble(2));
+			
 			check = (Integer) temp.get(KEY_NAME4);
 			if (check == 1)
 			{
@@ -116,8 +129,10 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 		
 	}
 	//wipes the db for next match
-	public void resetDatabase(int field_number){
+	public void resetDatabase(){
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_ONE, null, null);	
+		key_count = 0;
+		db.close();
 	}
 };

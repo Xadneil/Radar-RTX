@@ -9,5 +9,6 @@
     </item>
     <item android:id="@+id/rplay" android:title="@string/replay_play"></item>
     <item android:id="@+id/rpause" android:title="@string/replay_pause"></item>
+    <item android:id="@+id/resetter" android:title="Reset"></item>
 
 </menu>
