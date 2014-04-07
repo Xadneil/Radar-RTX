@@ -174,14 +174,14 @@ public class AppState {
 		AppState.username = username;
 	}
 
-<<<<<<< HEAD
 	public static void setMyId(int myId) {
 		AppState.myId = myId;
 	}
 
 	public static int getMyId() {
 		return myId;
-=======
+	}
+
 	public static void add_db(LatLng point, int play_num, int div) {
 		// TODO Auto-generated method stub
 		db.addPoints(point, play_num, div);
@@ -190,6 +190,5 @@ public class AppState {
 	public static ArrayList<ContentValues> recv_points(int counter)
 	{
 		return db.readPoints(counter);
->>>>>>> Replay
 	}
 }
