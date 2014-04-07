@@ -37,7 +37,7 @@ public class ReplayerActivity extends Activity {
 	GoogleMap map;
 	private final int GOOGLE_PLAY_SERVICES = 0;
 	private final String TAG = "ReplayerActivity";
-	private int counter = 1;
+	private int counter = 0;
 	private SparseArray<Marker> mark = new SparseArray<Marker>();
 	protected boolean isGooglePlayConnected;
 	private boolean is_running;
@@ -140,8 +140,8 @@ public class ReplayerActivity extends Activity {
 	private void set_map_impl(LatLng latLng) {
 		map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
 		map.moveCamera(CameraUpdateFactory.zoomTo(16));
-		map.setMyLocationEnabled(true);
-		map.getUiSettings().setMyLocationButtonEnabled(false);
+		//map.setMyLocationEnabled(true);
+		//map.getUiSettings().setMyLocationButtonEnabled(false);
 	}
 
 	private void next_post() {
@@ -151,7 +151,7 @@ public class ReplayerActivity extends Activity {
 		} catch(CursorIndexOutOfBoundsException e)
 		{
 			is_running = false;
-			counter = 1;
+			counter = 0;
 			return;
 		}
 		Log.d(TAG, "The original id"+ temp.get(0).getAsDouble(ReplayDatabase.Column_playerID));
@@ -181,7 +181,7 @@ public class ReplayerActivity extends Activity {
 		}
 
 		temp_two = (Integer) cur_pos.get(ReplayDatabase.KEY_ID);
-		counter = temp_two + 2;
+		counter = temp_two + 1;
 		Log.d(TAG, "counter =" + counter);
 	}
 

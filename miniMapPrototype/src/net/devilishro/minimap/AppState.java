@@ -57,7 +57,7 @@ public class AppState {
 	private static Network fieldServer = new Network(Type.MAP, serverAddress,
 			33640);
 
-	public static boolean networkBypass = false;
+	public static boolean networkBypass = true;
 
 	private static ReplayDatabase db;
 

@@ -30,7 +30,7 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 	public static final String Column_lng = "Pos_Long";
 	public static final String Column_delimiter = "Pos_End";
 	private final String TAG = "ReplayDatabase";
-	private int key_count = 1;
+	private int key_count = 0;
 
 	public ReplayDatabase(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -73,7 +73,7 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 		} finally {
 			db.endTransaction();
 		}
-		
+		Log.d(TAG, "Key_Id: " + key_count);
 		Log.d(TAG, "Entry to DB Row: " + result);
 
 		key_count++;
@@ -138,7 +138,7 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 	public void resetDatabase() {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(TABLE_ONE, null, null);
-		key_count = 1;
+		key_count = 0;
 		db.close();
 	}
 };
