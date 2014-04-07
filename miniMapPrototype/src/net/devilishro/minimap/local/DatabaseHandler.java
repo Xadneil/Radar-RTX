@@ -17,7 +17,7 @@ public class DatabaseHandler {
 	}
 	
 	public static void send_db(){
-		AppState.add_db(new LatLng(0,0), -1, 1); //to set the place holder between a interval of points
+		AppState.add_db(new LatLng(0,0), -3, 1); //to set the place holder between a interval of points
 	}
 	
 	public static ArrayList<ContentValues> recv_db(int last_saved){

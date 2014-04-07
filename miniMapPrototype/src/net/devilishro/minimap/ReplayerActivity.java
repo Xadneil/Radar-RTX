@@ -39,7 +39,6 @@ public class ReplayerActivity extends Activity {
 	private int counter = 1;
 	private SparseArray<Marker> mark = new SparseArray<Marker>();
 	protected boolean isGooglePlayConnected;
-	private boolean test;
 	private Handler handler;
 
 	@Override
@@ -49,26 +48,24 @@ public class ReplayerActivity extends Activity {
 				public void run() {
 					int i = 0;
 
-					//while (true) {
-						try {
-							//Thread.sleep(200);
-							handler.obtainMessage(1).sendToTarget();
-							i++;
-						} catch (Exception e) {
-							Log.e(TAG, "pos's displayed: " + i);
-							Log.e(TAG, "Error", e);
-							//break;
-						}
-					//}
+					while (true) {
+					try {
+						Thread.sleep(200);
+						handler.obtainMessage(1).sendToTarget();
+						i++;
+					} catch (Exception e) {
+						Log.e(TAG, "pos's displayed: " + i);
+						Log.e(TAG, "Error", e);
+						break;
+					}
+					}
 				}
 			}.start();
-			Log.d(TAG, "This at least works");
 			return true;
-		} else if(item.getItemId() == R.id.resetter)
-		{
+		} else if (item.getItemId() == R.id.resetter) {
 			AppState.reset_db();
 		}
-			return super.onOptionsItemSelected(item);
+		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -99,24 +96,6 @@ public class ReplayerActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.replayer, menu);
 		return true;
-	}
-
-	private void replay_start() {
-		final Handler handler = new Handler();
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						// wait(200);
-						// next_post();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		});
 	}
 
 	// straight copypasta
@@ -152,6 +131,7 @@ public class ReplayerActivity extends Activity {
 	private void set_map(LatLng latLng) {
 		handler.obtainMessage(0, latLng).sendToTarget();
 	}
+
 	private void set_map_impl(LatLng latLng) {
 		map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
 		map.moveCamera(CameraUpdateFactory.zoomTo(3));
@@ -160,18 +140,8 @@ public class ReplayerActivity extends Activity {
 	}
 
 	private void next_post() {
-		ArrayList<ContentValues> temp = AppState.recv_points(0); // list
-																		// of
-																		// info
-																		// from
-																		// all
-																		// players
-																		// on
-																		// the
-																		// filed
-																		// at a
-																		// certain
-																		// time
+		ArrayList<ContentValues> temp = AppState.recv_points(counter);
+		Log.d(TAG, "The original id"+ temp.get(0).getAsDouble(ReplayDatabase.Column_playerID));
 		ContentValues cur_pos = null;
 		LatLng pos = new LatLng(0, 0);
 		Marker val = null;
@@ -179,30 +149,31 @@ public class ReplayerActivity extends Activity {
 		int temp_two = -1;
 		for (int i = 0; i < temp.size(); i++) {
 			cur_pos = temp.get(i); // gets ith player
-			if (i == 0)
-			{
+			if (i == 0) {
 				set_map(new LatLng(
-						cur_pos.getAsDouble(ReplayDatabase.KEY_NAME2),
-						cur_pos.getAsDouble(ReplayDatabase.KEY_NAME3)));
+						cur_pos.getAsDouble(ReplayDatabase.Column_lat),
+						cur_pos.getAsDouble(ReplayDatabase.Column_lng)));
 			}
-			id = (Integer) cur_pos.get(ReplayDatabase.KEY_NAME1);
+			id = cur_pos.getAsInteger(ReplayDatabase.Column_playerID);
 			val = mark.get(id); // gets the marker
-			Log.d(TAG, String.valueOf(cur_pos.getAsDouble(ReplayDatabase.KEY_NAME4)));
-			Log.d(TAG, String.valueOf(cur_pos.getAsDouble(ReplayDatabase.KEY_NAME4)));
 			if (val == null) { // new player for the replay
-				val = map.addMarker(new MarkerOptions().snippet(
-						AppState.getNames().get(id)).position(pos));
+				val = map.addMarker(new MarkerOptions().title("" + id)
+						.position(pos));
+				mark.put(id, val); // store the marker
 			}
+			Log.d(TAG, "Fucking Id :  " + cur_pos.getAsDouble(ReplayDatabase.Column_playerID));
 			move_marker(val,
-					new LatLng(cur_pos.getAsDouble(ReplayDatabase.KEY_NAME2),
-							cur_pos.getAsDouble(ReplayDatabase.KEY_NAME3)));
+					new LatLng(cur_pos.getAsDouble(ReplayDatabase.Column_lat),
+							cur_pos.getAsDouble(ReplayDatabase.Column_lng)));
 		}
 
 		temp_two = (Integer) cur_pos.get(ReplayDatabase.KEY_ID);
 		counter = temp_two + 2;
+		Log.d(TAG, "counter =" + counter);
 	}
 
 	private void move_marker(final Marker m, final LatLng new_pos) {
+
 		final Handler handler = new Handler();
 		final long start = SystemClock.uptimeMillis();
 		Projection proj = map.getProjection();

@@ -254,6 +254,7 @@ public class MapActivity extends Activity {
 			for (int i = 0; i < AppState.getPositions().size(); i++) {
 				int id = AppState.getPositions().keyAt(i);
 				LatLng position = AppState.getPositions().get(id);
+				DatabaseHandler.add_point(position, id);
 				if (id == AppState.getMyId())
 					continue;
 				Marker m = AppState.getMarkers().get(id);
@@ -274,8 +275,6 @@ public class MapActivity extends Activity {
 
 					animateMarker(m, position, false);
 					m.setRotation(rotation);
-
-					DatabaseHandler.add_point(position, id);
 				}
 			}
 			DatabaseHandler.send_db();
