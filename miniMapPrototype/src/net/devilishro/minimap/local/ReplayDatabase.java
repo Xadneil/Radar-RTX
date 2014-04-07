@@ -67,7 +67,9 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 		else
 			input.put(KEY_NAME4, 0);
 		Log.d(TAG, "About to add points to db");
-		db.insert(TABLE_ONE, null, input);
+		long result = db.insert(TABLE_ONE, null, input);
+		
+			Log.d(TAG, "Inserted " + result);
 		key_count++;
 		db.close();
 	}
@@ -89,11 +91,13 @@ public class ReplayDatabase extends SQLiteOpenHelper{
 			if(curs != null)
 				curs.moveToFirst();
 			
-			temp.put(KEY_ID, Integer.parseInt(curs.getString(0)));
-			temp.put(KEY_NAME1, Integer.parseInt(curs.getString(1)));
-			temp.put(KEY_NAME2, Double.parseDouble(curs.getString(2)));
-			temp.put(KEY_NAME3, Double.parseDouble(curs.getString(3)));
-			temp.put(KEY_NAME4, Integer.parseInt(curs.getString(4)));
+			Log.d(TAG, "Cursor size: " + curs.getCount());
+			
+			temp.put(KEY_ID, curs.getInt(0));
+			temp.put(KEY_NAME1, curs.getInt(1));
+			temp.put(KEY_NAME2, curs.getDouble(2));
+			temp.put(KEY_NAME3, curs.getDouble(3));
+			temp.put(KEY_NAME4, curs.getInt(4));
 			
 			check = (Integer) temp.get(KEY_NAME4);
 			if (check == 1)

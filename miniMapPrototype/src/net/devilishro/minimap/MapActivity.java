@@ -278,7 +278,7 @@ public class MapActivity extends Activity {
 					DatabaseHandler.add_point(position, id);
 				}
 			}
-			//DatabaseHandler.send_db();
+			DatabaseHandler.send_db();
 		}
 	}
 

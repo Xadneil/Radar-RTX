@@ -3,16 +3,13 @@ package net.devilishro.minimap;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class Replay extends Activity {
 
@@ -37,6 +34,7 @@ public class Replay extends Activity {
 
 		one.setAdapter(new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, listy));
+		one.setOnItemClickListener(clickListener);
 	}
 
 	private void setList() {
