@@ -26,10 +26,11 @@
 
     <Button
         android:id="@+id/send"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="128dp"
+        android:layout_height="49dp"
         android:layout_marginBottom="14dp"
-        android:text="Send Notification"
-        android:onClick="onSendClicked" />
+        android:background="@drawable/bu_menu_large"
+        android:onClick="onSendClicked"
+        android:text="Send Notification" />
 
 </LinearLayout>

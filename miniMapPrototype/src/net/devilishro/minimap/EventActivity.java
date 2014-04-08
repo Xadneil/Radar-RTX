@@ -129,7 +129,7 @@ public class EventActivity extends Activity {
 		switch (item.getItemId()) {
 		case 0:// replay
 		{
-			Intent i = new Intent(this, Replay.class);
+			Intent i = new Intent(this, ReplayerActivity.class);
 			startActivity(i);
 			break;
 		}

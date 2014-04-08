@@ -182,8 +182,8 @@ public class PacketCreator {
 	public static Packet eventNotification(String message, short urgency) {
 		Packet ret = new Packet(2 + 4 + message.getBytes().length + 2);
 		ret.pack_short(SendOpcode.EVENT_NOTIFICATION.getValue());
-		ret.pack_string(message);
 		ret.pack_short(urgency);
+		ret.pack_string(message);
 		return ret;
 	}
 
