@@ -56,26 +56,19 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 	public void addPoints(LatLng points, int player, int end) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues input = new ContentValues();
-		long result = -1;
 		input.put(KEY_ID, key_count);
 		input.put(Column_playerID, player);
 		input.put(Column_lat, points.latitude);
 		input.put(Column_lng, points.longitude);
 		input.put(Column_delimiter, end);
 
-		Log.d(TAG, "Key: " + key_count + " | ID: " + player + " | Lat: "
-				+ points.latitude + " | Lng: " + points.longitude);
-		
 		db.beginTransaction();
 		try {
-			result = db.insert(TABLE_ONE, null, input);
+			db.insert(TABLE_ONE, null, input);
 			db.setTransactionSuccessful();
 		} finally {
 			db.endTransaction();
 		}
-		Log.d(TAG, "Key_Id: " + key_count);
-		Log.d(TAG, "Entry to DB Row: " + result);
-
 		key_count++;
 		db.close();
 	}
@@ -119,19 +112,13 @@ public class ReplayDatabase extends SQLiteOpenHelper {
 			temp.put(Column_lng, longitude);
 			temp.put(Column_delimiter, mark);
 
-			Log.d(TAG, "Count: " + curs.getCount() + " " + temp.toString());
 			recv_points.add(temp);
 			if (mark == 1)
 				break;
-			//else {
-				
-			//}
 			count_one++;
 		}
 		db.close();
-		Log.d(TAG, "Added player id " + recv_points.get(0).getAsInteger(Column_playerID) + " to the list");
 		return recv_points;
-
 	}
 
 	// wipes the db for next match

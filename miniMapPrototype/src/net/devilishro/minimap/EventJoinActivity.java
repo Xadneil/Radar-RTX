@@ -25,7 +25,7 @@ public class EventJoinActivity extends Activity {
 		@Override
 		public void onClick(View view) {
 			String team = view.getId() == R.id.group_1_button ? AppState
-					.getCurrentEvent().team1 : AppState.getCurrentEvent().team1;
+					.getCurrentEvent().team1 : AppState.getCurrentEvent().team2;
 			AppState.getEventServer().send(PacketCreator.joinTeam(team));
 			chosenTeam = team;
 			if (AppState.networkBypass) {
@@ -118,6 +118,8 @@ public class EventJoinActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_event_join);
+		AppState.getTeamNames(0).clear();
+		AppState.getTeamNames(1).clear();
 		((TextView) this.findViewById(R.id.event_join_name)).setText(AppState
 				.getCurrentEvent().title);
 		((Button) this.findViewById(R.id.group_1_button))

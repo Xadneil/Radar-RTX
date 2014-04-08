@@ -1,7 +1,6 @@
 package net.devilishro.minimap.local;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import net.devilishro.minimap.AppState;
 import android.content.ContentValues;
@@ -9,8 +8,6 @@ import android.content.ContentValues;
 import com.google.android.gms.maps.model.LatLng;
 
 public class DatabaseHandler {
-	
-	private static List<LatLng> pos = new ArrayList<LatLng>();
 	
 	public static void add_point(LatLng point, int p_number){
 		AppState.add_db(point, p_number, 0);

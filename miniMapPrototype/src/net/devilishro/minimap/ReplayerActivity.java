@@ -1,6 +1,7 @@
 package net.devilishro.minimap;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.devilishro.minimap.local.ReplayDatabase;
 import android.app.Activity;
@@ -38,36 +39,43 @@ public class ReplayerActivity extends Activity {
 	private final int GOOGLE_PLAY_SERVICES = 0;
 	private final String TAG = "ReplayerActivity";
 	private int counter = 0;
-	private SparseArray<Marker> mark = new SparseArray<Marker>();
+	private SparseArray<Pair> mark = new SparseArray<Pair>();
 	protected boolean isGooglePlayConnected;
 	private boolean is_running;
 	private Handler handler;
 
+	private static class Pair {
+		public Marker marker;
+		public boolean isUsed;
+
+		public Pair(Marker marker, boolean isUsed) {
+			this.marker = marker;
+			this.isUsed = isUsed;
+		}
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.rplay) {
-			if(is_running)
+			if (is_running)
 				return true;
 			new Thread() {
 				public void run() {
-					int i = 0;
 					is_running = true;
 					while (is_running) {
-					try {
-						Thread.sleep(2000);
-						handler.obtainMessage(1).sendToTarget();
-						i++;
-					} catch (Exception e) {
-						Log.e(TAG, "pos's displayed: " + i);
-						Log.e(TAG, "Error", e);
-						break;
-					}
+						try {
+							Thread.sleep(2000);
+							handler.obtainMessage(1).sendToTarget();
+						} catch (Exception e) {
+							Log.e(TAG, "Error", e);
+							break;
+						}
 					}
 				}
 			}.start();
 		} else if (item.getItemId() == R.id.resetter) {
 			AppState.reset_db();
-		} else if(item.getItemId() == R.id.rpause){
+		} else if (item.getItemId() == R.id.rpause) {
 			is_running = false;
 		}
 		return true;
@@ -83,7 +91,7 @@ public class ReplayerActivity extends Activity {
 			finish();
 			return;
 		}
-		//map.set
+		// map.set
 
 		handler = new Handler() {
 			@Override
@@ -141,22 +149,19 @@ public class ReplayerActivity extends Activity {
 	private void set_map_impl(LatLng latLng) {
 		map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
 		map.moveCamera(CameraUpdateFactory.zoomTo(18));
-		//map.setMyLocationEnabled(true);
-		//map.getUiSettings().setMyLocationButtonEnabled(false);
 	}
 
 	private void next_post() {
 		ArrayList<ContentValues> temp = null;
-		try{
+		try {
 			temp = AppState.recv_points(counter);
-		} catch(CursorIndexOutOfBoundsException e)
-		{
-			Toast.makeText(this, "Replay has failed to start.", Toast.LENGTH_SHORT).show();
+		} catch (CursorIndexOutOfBoundsException e) {
+			Toast.makeText(this, "Replay has stopped.", Toast.LENGTH_SHORT)
+					.show();
 			is_running = false;
 			counter = 0;
 			return;
 		}
-		Log.d(TAG, "The original id"+ temp.get(0).getAsDouble(ReplayDatabase.Column_playerID));
 		ContentValues cur_pos = null;
 		LatLng pos = new LatLng(0, 0);
 		Marker val = null;
@@ -170,21 +175,42 @@ public class ReplayerActivity extends Activity {
 						cur_pos.getAsDouble(ReplayDatabase.Column_lng)));
 			}
 			id = cur_pos.getAsInteger(ReplayDatabase.Column_playerID);
-			val = mark.get(id); // gets the marker
-			if (val == null) { // new player for the replay
+			Pair pair = mark.get(id); // gets the marker
+
+			if (pair == null) { // new player for the replay
 				val = map.addMarker(new MarkerOptions().title("" + id)
 						.position(pos));
-				mark.put(id, val); // store the marker
+			} else {
+				val = pair.marker;
 			}
-			Log.d(TAG, "Fucking Id :  " + cur_pos.getAsDouble(ReplayDatabase.Column_playerID));
+			// mark as used, and initialization for new marker
+			mark.put(id, new Pair(val, true));
 			move_marker(val,
 					new LatLng(cur_pos.getAsDouble(ReplayDatabase.Column_lat),
 							cur_pos.getAsDouble(ReplayDatabase.Column_lng)));
 		}
 
+		// Delete markers which were not updated.
+		List<Integer> toDelete = new ArrayList<Integer>();
+		for (int i = 0; i < mark.size(); i++) {
+			Pair p = mark.valueAt(i);
+			if (!p.isUsed) {
+				toDelete.add(mark.keyAt(i));
+			}
+		}
+
+		for (int i : toDelete) {
+			mark.delete(i);
+		}
+
+		// reset everything to false for next iteration
+		for (int i = 0; i < mark.size(); i++) {
+			int markerId = mark.keyAt(i);
+			mark.put(markerId, new Pair(mark.get(markerId).marker, false));
+		}
+
 		temp_two = (Integer) cur_pos.get(ReplayDatabase.KEY_ID);
 		counter = temp_two + 1;
-		Log.d(TAG, "counter =" + counter);
 	}
 
 	private void move_marker(final Marker m, final LatLng new_pos) {
